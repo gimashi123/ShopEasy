@@ -1,0 +1,193 @@
+services:
+
+  # ──────────────────────────────────────────────
+  # MongoDB  –  single shared instance
+  # ──────────────────────────────────────────────
+  mongodb:
+    image: mongo:7.0
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - microservices-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ──────────────────────────────────────────────
+  # Auth Service  –  HTTP 8084 | gRPC 9094
+  # ──────────────────────────────────────────────
+  auth-service:
+    build:
+      context: ./backend
+      dockerfile: auth-service/Dockerfile
+    container_name: auth-service
+    ports:
+      - "8084:8084"
+      - "9094:9094"
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+      - JWT_SECRET=dGhpcy1pcy1hLXZlcnktc2VjdXJlLXNlY3JldC1rZXktZm9yLWxhdW5kcnktYXBw
+      - MONGO_URI=mongodb://mongodb:27017/authdb
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - microservices-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8084/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ──────────────────────────────────────────────
+  # Customer Service  –  HTTP 8086 | gRPC 9096
+  # ──────────────────────────────────────────────
+  customer-service:
+    build:
+      context: ./backend
+      dockerfile: customer-service/Dockerfile
+    container_name: customer-service
+    ports:
+      - "8086:8086"
+      - "9096:9096"
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+      - DB_URL=jdbc:postgresql://postgres:5432/customer_db
+      - DB_USERNAME=ctse
+      - DB_PASSWORD=ctse_password
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - microservices-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8086/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ──────────────────────────────────────────────
+  # Order Service  –  HTTP 8082
+  # ──────────────────────────────────────────────
+  order-service:
+    build:
+      context: ./backend
+      dockerfile: order-service/Dockerfile
+    container_name: order-service
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+      - DB_URL=jdbc:postgresql://postgres:5432/orderdb
+      - DB_USERNAME=ctse
+      - DB_PASSWORD=ctse_password
+      - CUSTOMER_SERVICE_GRPC_HOST=customer-service
+      - CUSTOMER_SERVICE_GRPC_PORT=9096
+    depends_on:
+      postgres:
+        condition: service_healthy
+      customer-service:
+        condition: service_started
+    networks:
+      - microservices-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8082/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ──────────────────────────────────────────────
+  # Payment Service  –  HTTP 8083
+  # ──────────────────────────────────────────────
+  payment-service:
+    build:
+      context: ./backend
+      dockerfile: payment-service/Dockerfile
+    container_name: payment-service
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+      - DB_URL=jdbc:postgresql://postgres:5432/paymentdb
+      - DB_USERNAME=ctse
+      - DB_PASSWORD=ctse_password
+      - ORDER_SERVICE_GRPC_HOST=order-service
+      - ORDER_SERVICE_URL=http://order-service:8082
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY:-sk_test_placeholder}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      order-service:
+        condition: service_started
+    networks:
+      - microservices-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8083/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ──────────────────────────────────────────────
+  # Frontend  –  React SPA served by nginx on port 5173
+  # ──────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        - VITE_STRIPE_PUBLISHABLE_KEY=${VITE_STRIPE_PUBLISHABLE_KEY:-pk_test_placeholder}
+        - VITE_API_BASE_URL=
+    container_name: frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - gateway
+    networks:
+      - microservices-net
+    restart: unless-stopped
+
+  # ──────────────────────────────────────────────
+  # API Gateway  –  port 8080  (single entry point)
+  # ──────────────────────────────────────────────
+  gateway:
+    build:
+      context: ./backend
+      dockerfile: gateway/Dockerfile
+    container_name: gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - AUTH_SERVICE_URL=http://auth-service:8084
+      - CUSTOMER_SERVICE_URL=http://customer-service:8086
+      - ORDER_SERVICE_URL=http://order-service:8082
+      - PAYMENT_SERVICE_URL=http://payment-service:8083
+    depends_on:
+      - auth-service
+      - customer-service
+      - order-service
+      - payment-service
+    networks:
+      - microservices-net
+    restart: unless-stopped
+
+volumes:
+  mongo-data:
+
+networks:
+  microservices-net:
+    driver: bridge
+

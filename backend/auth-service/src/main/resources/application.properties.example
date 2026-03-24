@@ -1,0 +1,20 @@
+# Auth Service Configuration
+spring.application.name=auth-service
+server.port=8084
+
+# MongoDB
+spring.data.mongodb.uri=${MONGO_URI:mongodb://localhost:27017/authdb}
+spring.data.mongodb.auto-index-creation=true
+
+# JWT – Change secret to a 256-bit Base64-encoded value in production!
+jwt.secret=dGhpcy1pcy1hLXZlcnktc2VjdXJlLXNlY3JldC1rZXktZm9yLWxhdW5kcnktYXBw
+jwt.expiration-ms=86400000
+
+# gRPC server port
+grpc.server.port=9094
+grpc.server.address=0.0.0.0
+
+# Default Admin User
+admin.username=admin
+admin.email=admin@mail.com
+admin.password=admin@1234
