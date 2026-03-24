@@ -18,32 +18,57 @@ spring:
             allowCredentials: true
       routes:
         - id: auth-service
-          uri: ${AUTH_SERVICE_URL:http://localhost:8084}
+          uri: ${AUTH_SERVICE_URL:http://localhost:8081}
           predicates:
             - Path=/api/auth/**
           filters:
             - StripPrefix=0
 
-        - id: customer-service
-          uri: ${CUSTOMER_SERVICE_URL:http://localhost:8086}
+        - id: delivery-service
+          uri: ${DELIVERY_SERVICE_URL:http://localhost:8082}
           predicates:
-            - Path=/api/customers/**
+            - Path=/api/delivery/**
           filters:
             - StripPrefix=0
 
         - id: order-service
-          uri: ${ORDER_SERVICE_URL:http://localhost:8082}
+          uri: ${ORDER_SERVICE_URL:http://localhost:8083}
           predicates:
             - Path=/api/orders/**
           filters:
             - StripPrefix=0
 
-        - id: payment-service
-          uri: ${PAYMENT_SERVICE_URL:http://localhost:8083}
+        - id: product-service
+          uri: ${PRODUCT_SERVICE_URL:http://localhost:8084}
           predicates:
-            - Path=/api/payments/**
+            - Path=/api/product/**
           filters:
             - StripPrefix=0
+
+        - id: promotion-service
+          uri: ${PROMOTION_SERVICE_URL:http://localhost:8085}
+          predicates:
+            - Path=/api/promotion/**
+          filters:
+            - StripPrefix=0
+
+        - id: notification-service
+          uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8086}
+          predicates:
+            - Path=/api/notification/**
+          filters:
+            - StripPrefix=0
+
+        - id: supermarket-service
+          uri: ${SUPERMARKET_SERVICE_URL:http://localhost:8087}
+          predicates:
+            - Path=/api/supermarket/**
+          filters:
+            - StripPrefix=0
+
+
+
+
 
 management:
   endpoints:
