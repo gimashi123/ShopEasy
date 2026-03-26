@@ -38,10 +38,10 @@ spring:
           filters:
             - StripPrefix=0
 
-        - id: payment-service
-          uri: ${PAYMENT_SERVICE_URL:http://localhost:8083}
+        - id: promotion-service
+          uri: ${PROMOTION_SERVICE_URL:http://localhost:8085}
           predicates:
-            - Path=/api/payments/**
+            - Path=/api/promotions/**
           filters:
             - StripPrefix=0
 
