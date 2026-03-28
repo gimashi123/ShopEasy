@@ -22,4 +22,10 @@ public class UpdatePromotionRequest {
     private String name;
 
     private String description;
+
+    private String productName;
+
+    private String supermarketName;
+
+    private String imageUrl;
 }

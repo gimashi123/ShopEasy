@@ -33,6 +33,10 @@ public class Promotion {
      * If null, this is a global promotion that applies to all products.
      */
     private String productId;
+    private String productName;
+    private String supermarketName;
+
+    private String imageUrl;
 
     /**
      * Discount percentage (0.0 to 100.0).

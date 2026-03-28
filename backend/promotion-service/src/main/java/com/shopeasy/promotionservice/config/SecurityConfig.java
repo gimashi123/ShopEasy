@@ -30,6 +30,8 @@ public class SecurityConfig {
                 .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/api/promotions/**", "/api/promotions", "/api/promotions/").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
+                // Permit Swagger UI and OpenAPI docs
+                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .anyRequest().authenticated()
             );
 

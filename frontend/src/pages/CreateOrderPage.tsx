@@ -23,12 +23,12 @@ export default function CreateOrderPage() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
 
-  // Step 1: Items & Service
+  // Step 1: Items & Shopping Mode
   const [serviceType, setServiceType] = useState<'STANDARD' | 'PREMIUM'>("STANDARD");
-  const [weight, setWeight] = useState<number>(3); // 3 kg default for standard
+  const [itemCount, setItemCount] = useState<number>(5); // 5 items default for standard bag
   const [cartItems, setCartItems] = useState<Omit<OrderItem, 'id'>[]>([]);
   const [isExpress, setIsExpress] = useState(false);
-  const [isDryClean, setIsDryClean] = useState(false);
+  const [isPriority, setIsPriority] = useState(false);
   
   const [calculatedPrice, setCalculatedPrice] = useState<number>(0);
   const [loyaltyAccount, setLoyaltyAccount] = useState<LoyaltyAccount | null>(null);
@@ -43,7 +43,7 @@ export default function CreateOrderPage() {
   })();
   const discountedPrice = calculatedPrice * (1 - discountPercentage);
 
-  // Step 2: Slots
+  // Step 2: Delivery Slots
   const [pickupDate, setPickupDate] = useState("");
   const [pickupTime, setPickupTime] = useState("");
   const [deliveryDate, setDeliveryDate] = useState("");
@@ -63,16 +63,23 @@ export default function CreateOrderPage() {
 
   useEffect(() => {
     orderService.calculatePrice(serviceType, {
-      weight,
+      weight: itemCount, // Map itemCount to weight for backend compatibility
       items: cartItems,
       isExpress,
-      isDryClean
+      isDryClean: isPriority // Map isPriority to isDryClean for backend compatibility
     }, rules).then(setCalculatedPrice);
-  }, [cartItems, serviceType, weight, isExpress, isDryClean, rules]);
+  }, [cartItems, serviceType, itemCount, isExpress, isPriority, rules]);
 
-  const premiumCatalogue = Object.entries(rules)
-    .filter(([k]) => k.startsWith("PREM_CAT_"))
-    .map(([k, v]) => ({ name: k.replace("PREM_CAT_", "").replace(/_/g, " "), price: v }));
+  // Rest of the logic remains the same, just updating labels in return...
+
+  const premiumCatalogue = [
+    { name: "Organic Milk (1L)", price: 4.50 },
+    { name: "Fresh Eggs (Dozen)", price: 3.99 },
+    { name: "Whole Grain Bread", price: 2.50 },
+    { name: "Premium Apple Pack", price: 5.49 },
+    { name: "Greek Yogurt (500g)", price: 3.25 },
+    { name: "Chicken Breast (1kg)", price: 12.00 },
+  ];
 
   const addToCart = (product: { name: string; price: number }) => {
     setCartItems(prev => {
@@ -94,10 +101,10 @@ export default function CreateOrderPage() {
     try {
       // 1. Create order
       const order = await orderService.createOrder(user.id, serviceType, {
-        weight,
+        weight: itemCount,
         items: cartItems,
         isExpress,
-        isDryClean,
+        isDryClean: isPriority,
         totalPrice: calculatedPrice
       });
       
@@ -106,7 +113,7 @@ export default function CreateOrderPage() {
       await orderService.assignDeliverySlot(order.id, { date: deliveryDate, time: deliveryTime });
 
       // 3. Redirect to payment page
-      toast.success("Order created! Redirecting to payment...");
+      toast.success("Order created! Redirecting to checkout...");
       navigate(`/payments/make?orderId=${order.id}`);
     } catch (e: any) {
       toast.error("Error creating order");
@@ -119,8 +126,8 @@ export default function CreateOrderPage() {
     <div className="max-w-4xl mx-auto space-y-8 pb-12">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Place New Order</h1>
-          <p className="text-base text-muted-foreground mt-2">Follow the steps below to schedule your laundry</p>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Create Shopping Order</h1>
+          <p className="text-base text-muted-foreground mt-2">Pick your shopping mode and schedule your delivery</p>
         </div>
         <div className="flex items-center gap-2 text-sm font-medium">
           <span className={cn("flex items-center justify-center h-8 w-8 rounded-full border-2", step >= 1 ? "border-primary bg-primary text-white" : "border-muted text-muted-foreground")}>1</span>
@@ -136,28 +143,29 @@ export default function CreateOrderPage() {
           {step === 1 && (
             <div className="space-y-8 animate-in fade-in zoom-in-95 duration-300">
               <div className="space-y-4">
-                <h2 className="text-xl font-semibold">1. Select Service & Items</h2>
+                <h2 className="text-xl font-semibold">1. Select Shopping Mode & Items</h2>
                 <Separator />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-3">
                   <div>
-                    <Label className="text-base">Service Level</Label>
-                    <p className="text-sm text-muted-foreground mt-1">Choose how you want us to price and process your laundry.</p>
+                    <Label className="text-base">Shopping Mode</Label>
+                    <p className="text-sm text-muted-foreground mt-1">Choose how you want to build your order.</p>
                   </div>
                   <Select value={serviceType} onValueChange={(v: 'STANDARD'|'PREMIUM') => setServiceType(v)}>
-                    <SelectTrigger className="h-12"><SelectValue placeholder="Select service" /></SelectTrigger>
+                    <SelectTrigger className="h-12"><SelectValue placeholder="Select mode" /></SelectTrigger>
                     <SelectContent>
-                      {SERVICE_TYPES.map(s => <SelectItem key={s} value={s}>{s === 'STANDARD' ? 'Standard Laundry (Per Kg)' : 'Premium Items (Per Item)'}</SelectItem>)}
+                      <SelectItem value="STANDARD">Standard Bag (Flat Rate per item)</SelectItem>
+                      <SelectItem value="PREMIUM">Custom Selection (A-la-carte)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-3">
                   <div>
-                    <Label className="text-base">Global Add-ons</Label>
-                    <p className="text-sm text-muted-foreground mt-1">Select any additional services for your entire order.</p>
+                    <Label className="text-base">Order Enhancements</Label>
+                    <p className="text-sm text-muted-foreground mt-1">Select any priority options for your grocery run.</p>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="flex items-center space-x-2 border p-3 rounded-lg bg-slate-50 border-border cursor-pointer hover:bg-slate-100 transition-colors">
@@ -165,8 +173,8 @@ export default function CreateOrderPage() {
                       <Label htmlFor="express" className="cursor-pointer font-medium text-sm">Express (+{((rules["EXPRESS_MULTIPLIER"] ?? 1.5) - 1) * 100}%)</Label>
                     </div>
                     <div className="flex items-center space-x-2 border p-3 rounded-lg bg-slate-50 border-border cursor-pointer hover:bg-slate-100 transition-colors">
-                      <Checkbox id="dryclean" checked={isDryClean} onCheckedChange={(checked) => setIsDryClean(checked as boolean)} />
-                      <Label htmlFor="dryclean" className="cursor-pointer font-medium text-sm">Dry Clean (+{formatCurrency(rules["DRY_CLEAN_FEE"] ?? 15.00)})</Label>
+                      <Checkbox id="priority" checked={isPriority} onCheckedChange={(checked) => setIsPriority(checked as boolean)} />
+                      <Label htmlFor="priority" className="cursor-pointer font-medium text-sm">Fresh Priority (+{formatCurrency(rules["DRY_CLEAN_FEE"] ?? 15.00)})</Label>
                     </div>
                   </div>
                 </div>
@@ -176,18 +184,17 @@ export default function CreateOrderPage() {
                 <div className="space-y-4">
                   {serviceType === 'STANDARD' ? (
                     <div className="p-6 bg-slate-50 rounded-xl border border-border space-y-4">
-                      <Label className="text-base block">Estimated Weight (Kg)</Label>
+                      <Label className="text-base block">Estimated Number of Items</Label>
                       <div className="flex items-center gap-4">
-                        <Input type="number" min="1" max="50" className="h-14 text-2xl font-bold w-32 px-4 shadow-sm" value={weight} onChange={(e) => setWeight(Number(e.target.value))} />
-                        <span className="text-muted-foreground font-medium">kg @ {formatCurrency(rules["STANDARD_PER_KILO"] ?? 12.50)}/kg</span>
+                        <Input type="number" min="1" max="50" className="h-14 text-2xl font-bold w-32 px-4 shadow-sm" value={itemCount} onChange={(e) => setItemCount(Number(e.target.value))} />
+                        <span className="text-muted-foreground font-medium">items @ {formatCurrency(rules["STANDARD_PER_KILO"] ?? 12.50)}/item</span>
                       </div>
-                      <p className="text-sm text-muted-foreground">This is an estimate. Final weight is subject to measurement upon pickup.</p>
+                      <p className="text-sm text-muted-foreground">This is an estimate for a standard bag. Final count may vary.</p>
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      <Label className="text-base">Premium Catalogue</Label>
+                      <Label className="text-base">Shop Essentials</Label>
                       <div className="grid gap-3">
-                        {premiumCatalogue.length === 0 ? <p className="text-sm text-muted-foreground">No premium items configured.</p> : null}
                         {premiumCatalogue.map(c => (
                           <div key={c.name} className="flex items-center justify-between p-4 border border-border rounded-xl bg-slate-50/50 hover:bg-slate-50 transition-colors">
                             <div>
@@ -208,8 +215,8 @@ export default function CreateOrderPage() {
                     {serviceType === 'STANDARD' ? (
                       <div className="flex-1 space-y-3">
                         <div className="flex justify-between items-center p-4 rounded-xl bg-white border border-border shadow-sm">
-                          <span className="font-medium">Standard Laundry <span className="text-muted-foreground ml-2">({weight} Kg)</span></span>
-                          <span className="font-medium tabular-nums">{formatCurrency(weight * (rules["STANDARD_PER_KILO"] ?? 12.50))}</span>
+                          <span className="font-medium">Standard Grocery Bag <span className="text-muted-foreground ml-2">({itemCount} items)</span></span>
+                          <span className="font-medium tabular-nums">{formatCurrency(itemCount * (rules["STANDARD_PER_KILO"] ?? 12.50))}</span>
                         </div>
                       </div>
                     ) : (
@@ -232,9 +239,9 @@ export default function CreateOrderPage() {
                       )
                     )}
 
-                    {(isExpress || isDryClean || discountPercentage > 0) && (
+                    {(isExpress || isPriority || discountPercentage > 0) && (
                       <div className="mt-4 pt-4 border-t space-y-2">
-                        {isDryClean && <div className="flex justify-between text-sm"><span className="text-muted-foreground font-medium flex items-center gap-1"><span className="text-blue-500 rounded-full h-1.5 w-1.5 bg-blue-500 block relative top-px"></span>Dry Cleaning Fee</span><span className="tabular-nums font-medium text-foreground">+{formatCurrency(rules["DRY_CLEAN_FEE"] ?? 15.00)}</span></div>}
+                        {isPriority && <div className="flex justify-between text-sm"><span className="text-muted-foreground font-medium flex items-center gap-1"><span className="text-blue-500 rounded-full h-1.5 w-1.5 bg-blue-500 block relative top-px"></span>Fresh Priority Fee</span><span className="tabular-nums font-medium text-foreground">+{formatCurrency(rules["DRY_CLEAN_FEE"] ?? 15.00)}</span></div>}
                         {isExpress && <div className="flex justify-between text-sm"><span className="text-muted-foreground font-medium flex items-center gap-1"><span className="text-orange-500 rounded-full h-1.5 w-1.5 bg-orange-500 block relative top-px"></span>Express Surcharge</span><span className="tabular-nums font-medium text-foreground">+{((rules["EXPRESS_MULTIPLIER"] ?? 1.5) - 1) * 100}%</span></div>}
                         {discountPercentage > 0 && (
                           <div className="flex justify-between text-sm"><span className="text-emerald-600 font-medium flex items-center gap-1"><span className="text-emerald-500 rounded-full h-1.5 w-1.5 bg-emerald-500 block relative top-px"></span>Loyalty Discount ({loyaltyAccount?.tier})</span><span className="tabular-nums font-medium text-emerald-600">-{formatCurrency(calculatedPrice * discountPercentage)}</span></div>
@@ -270,9 +277,9 @@ export default function CreateOrderPage() {
                   <div>
                     <h3 className="font-semibold text-lg flex items-center gap-2">
                       <div className="h-8 w-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">1</div>
-                      Pickup
+                      Collection
                     </h3>
-                    <p className="text-sm text-muted-foreground mt-1 mb-5">Select a convenient date and time for our driver to collect your laundry.</p>
+                    <p className="text-sm text-muted-foreground mt-1 mb-5">Select a convenient date and time for our driver to collect items (if applicable).</p>
                     <div className="space-y-4">
                       <div className="space-y-2">
                         <Label>Date</Label>
@@ -292,7 +299,7 @@ export default function CreateOrderPage() {
                       <div className="h-8 w-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center shrink-0">2</div>
                       Delivery
                     </h3>
-                    <p className="text-sm text-muted-foreground mt-1 mb-5">Choose when you'd like your freshly cleaned items returned to you.</p>
+                    <p className="text-sm text-muted-foreground mt-1 mb-5">Choose when you'd like your fresh groceries delivered to your door.</p>
                     <div className="space-y-4">
                       <div className="space-y-2">
                         <Label>Date</Label>

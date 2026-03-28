@@ -20,6 +20,10 @@ public class CreatePromotionRequest {
      * Linked product ID. If null, promotion applies globally to all products.
      */
     private String productId;
+    private String productName;
+    private String supermarketName;
+
+    private String imageUrl;
 
     @NotNull(message = "Discount percent is required")
     @DecimalMin(value = "0.0", message = "Discount must be >= 0")

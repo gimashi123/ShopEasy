@@ -32,6 +32,9 @@ public class PromotionService {
                 .name(request.getName())
                 .description(request.getDescription())
                 .productId(request.getProductId())
+                .productName(request.getProductName())
+                .supermarketName(request.getSupermarketName())
+                .imageUrl(request.getImageUrl())
                 .discountPercent(request.getDiscountPercent())
                 .active(request.isActive())
                 .startDate(request.getStartDate())
@@ -95,6 +98,15 @@ public class PromotionService {
         }
         if (request.getDescription() != null) {
             promotion.setDescription(request.getDescription());
+        }
+        if (request.getProductName() != null) {
+            promotion.setProductName(request.getProductName());
+        }
+        if (request.getSupermarketName() != null) {
+            promotion.setSupermarketName(request.getSupermarketName());
+        }
+        if (request.getImageUrl() != null) {
+            promotion.setImageUrl(request.getImageUrl());
         }
 
         promotion.setUpdatedAt(Instant.now());
@@ -184,6 +196,9 @@ public class PromotionService {
                 .name(p.getName())
                 .description(p.getDescription())
                 .productId(p.getProductId())
+                .productName(p.getProductName())
+                .supermarketName(p.getSupermarketName())
+                .imageUrl(p.getImageUrl())
                 .discountPercent(p.getDiscountPercent())
                 .active(p.isActive())
                 .startDate(p.getStartDate())

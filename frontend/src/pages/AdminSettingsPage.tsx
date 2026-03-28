@@ -78,7 +78,7 @@ export default function AdminSettingsPage() {
           <Card className="border-gray-200 shadow-none">
             <CardHeader>
               <CardTitle>Standard Variables</CardTitle>
-              <CardDescription>Configure base multipliers and fees for standard laundry service.</CardDescription>
+              <CardDescription>Configure base multipliers and fees for standard grocery bags.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -103,8 +103,8 @@ export default function AdminSettingsPage() {
 
           <Card className="border-gray-200 shadow-none">
             <CardHeader>
-              <CardTitle>Premium Catalog</CardTitle>
-              <CardDescription>Configure absolute prices for premium apparel.</CardDescription>
+              <CardTitle>Grocery Essentials Catalog</CardTitle>
+              <CardDescription>Configure absolute prices for individually priced grocery items.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

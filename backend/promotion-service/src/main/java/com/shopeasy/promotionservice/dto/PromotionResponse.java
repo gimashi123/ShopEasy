@@ -18,6 +18,9 @@ public class PromotionResponse {
     private String name;
     private String description;
     private String productId;
+    private String productName;
+    private String supermarketName;
+    private String imageUrl;
     private double discountPercent;
     private boolean active;
     private Instant startDate;
