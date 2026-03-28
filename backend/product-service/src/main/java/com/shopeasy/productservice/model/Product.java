@@ -34,6 +34,7 @@ public class Product {
     private String description;
     private String category;
     private String brand;
+    private String supermarketId;
     private String imageUrl;
     private BigDecimal price;
     private Integer quantity;

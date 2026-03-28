@@ -64,6 +64,38 @@ public class ProductController {
                 ApiResponse.success("Product retrieved successfully", productService.getProductById(id)));
     }
 
+    /**
+     * Helps supermarket-service or the frontend list products for one supermarket.
+     */
+    @GetMapping("/supermarket/{supermarketId}")
+    public ResponseEntity<ApiResponse<List<ProductResponse>>> getProductsBySupermarketId(
+            @PathVariable String supermarketId) {
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Products retrieved successfully",
+                        productService.getProductsBySupermarketId(supermarketId)
+                )
+        );
+    }
+
+    /**
+     * This endpoint helps downstream services resolve a product by SKU when needed.
+     */
+    @GetMapping("/sku/{sku}")
+    public ResponseEntity<ApiResponse<ProductResponse>> getProductBySku(@PathVariable String sku) {
+        return ResponseEntity.ok(
+                ApiResponse.success("Product retrieved successfully", productService.getProductBySku(sku)));
+    }
+
+    /**
+     * This endpoint is useful for order-service or promotion-service to validate a product reference.
+     */
+    @GetMapping("/{id}/exists")
+    public ResponseEntity<ApiResponse<Boolean>> productExists(@PathVariable String id) {
+        return ResponseEntity.ok(
+                ApiResponse.success("Product existence checked successfully", productService.productExists(id)));
+    }
+
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApiResponse<ProductResponse>> updateProduct(
             @PathVariable String id,

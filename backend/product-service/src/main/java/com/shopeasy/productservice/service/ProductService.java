@@ -42,6 +42,7 @@ public class ProductService {
                 .description(request.getDescription())
                 .category(request.getCategory())
                 .brand(request.getBrand())
+                .supermarketId(request.getSupermarketId().trim())
                 .imageUrl(resolveImagePath(request.getImageUrl(), imageFile, null))
                 .price(request.getPrice())
                 .quantity(request.getQuantity())
@@ -67,6 +68,32 @@ public class ProductService {
         return mapToResponse(product);
     }
 
+    /**
+     * Allows downstream services to fetch all products owned by one supermarket.
+     */
+    public List<ProductResponse> getProductsBySupermarketId(String supermarketId) {
+        return productRepository.findAllBySupermarketId(supermarketId.trim())
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
+    /**
+     * Useful for downstream services that know the SKU rather than the MongoDB id.
+     */
+    public ProductResponse getProductBySku(String sku) {
+        Product product = productRepository.findBySku(sku.trim())
+                .orElseThrow(() -> new ResourceNotFoundException("Product", "sku", sku));
+        return mapToResponse(product);
+    }
+
+    /**
+     * Lightweight existence check for other services before they store a productId reference.
+     */
+    public boolean productExists(String id) {
+        return productRepository.existsById(id);
+    }
+
     public ProductResponse updateProduct(String id, ProductRequest request) {
         return updateProduct(id, request, null);
     }
@@ -85,6 +112,7 @@ public class ProductService {
         existingProduct.setDescription(request.getDescription());
         existingProduct.setCategory(request.getCategory());
         existingProduct.setBrand(request.getBrand());
+        existingProduct.setSupermarketId(request.getSupermarketId().trim());
         existingProduct.setImageUrl(resolveImagePath(request.getImageUrl(), imageFile, existingProduct.getImageUrl()));
         existingProduct.setPrice(request.getPrice());
         existingProduct.setQuantity(request.getQuantity());
@@ -116,6 +144,7 @@ public class ProductService {
                 .description(product.getDescription())
                 .category(product.getCategory())
                 .brand(product.getBrand())
+                .supermarketId(product.getSupermarketId())
                 .imageUrl(product.getImageUrl())
                 .price(product.getPrice())
                 .quantity(product.getQuantity())

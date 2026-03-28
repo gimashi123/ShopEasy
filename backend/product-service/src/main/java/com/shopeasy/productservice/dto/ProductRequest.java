@@ -41,6 +41,9 @@ public class ProductRequest {
     @Size(max = 80, message = "Brand must not exceed 80 characters")
     private String brand;
 
+    @NotBlank(message = "Supermarket id is required")
+    private String supermarketId;
+
     // Store the image as a URL/path instead of raw binary to keep the service simple.
     @Size(max = 500, message = "Image URL must not exceed 500 characters")
     @Pattern(
