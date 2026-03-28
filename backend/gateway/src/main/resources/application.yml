@@ -46,6 +46,13 @@ spring:
             - StripPrefix=0
 
 
+        - id: supermarket-service
+          uri: ${SUPERMARKET_SERVICE_URL:http://localhost:8087}
+          predicates:
+            - Path=/api/supermarkets/**
+          filters:
+            - StripPrefix=0
+
         - id: payment-service
           uri: ${PAYMENT_SERVICE_URL:http://localhost:8083}
           predicates:
