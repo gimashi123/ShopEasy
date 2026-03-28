@@ -73,7 +73,7 @@ export default function PreferencesPage() {
                     <Settings className="h-8 w-8" />
                     Preferences
                 </h1>
-                <p className="text-sm text-muted-foreground mt-1">Customize your laundry experience</p>
+                <p className="text-sm text-muted-foreground mt-1">Customize your grocery shopping experience</p>
             </div>
 
             <Card className="border-border">
@@ -163,7 +163,7 @@ export default function PreferencesPage() {
                     </div>
 
                     <div>
-                        <Label htmlFor="serviceType">Preferred Service Type</Label>
+                        <Label htmlFor="serviceType">Preferred Shopping Mode</Label>
                         <Select
                             value={formData.preferredServiceType}
                             onValueChange={(value) => setFormData({ ...formData, preferredServiceType: value })}
@@ -172,8 +172,8 @@ export default function PreferencesPage() {
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="STANDARD">Standard Laundry</SelectItem>
-                                <SelectItem value="PREMIUM">Premium Laundry</SelectItem>
+                                <SelectItem value="STANDARD">Standard Bag</SelectItem>
+                                <SelectItem value="PREMIUM">Custom Selection</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -192,8 +192,8 @@ export default function PreferencesPage() {
                         </div>
                         <div className="flex items-center justify-between">
                             <div>
-                                <Label htmlFor="dryCleanPreferred" className="font-medium">Dry Cleaning</Label>
-                                <p className="text-sm text-muted-foreground">Prefer dry cleaning services</p>
+                                <Label htmlFor="dryCleanPreferred" className="font-medium">Fresh Priority</Label>
+                                <p className="text-sm text-muted-foreground">Prefer fresh priority for grocery items</p>
                             </div>
                             <Switch
                                 id="dryCleanPreferred"
