@@ -1,3 +1,74 @@
+#server:
+#  port: 8080
+#
+#spring:
+#  application:
+#    name: gateway
+#  cloud:
+#    gateway:
+#      globalcors:
+#        corsConfigurations:
+#          '[/**]':
+#            allowedOrigins:
+#              - "http://localhost:5173"
+#              - "http://localhost:8081"
+#              - "${FRONTEND_ORIGIN:}"
+#            allowedMethods: "*"
+#            allowedHeaders: "*"
+#            allowCredentials: true
+#      routes:
+#        - id: auth-service
+#          uri: ${AUTH_SERVICE_URL:http://localhost:8084}
+#          predicates:
+#            - Path=/api/auth/**
+#          filters:
+#            - StripPrefix=0
+#
+#        - id: customer-service
+#          uri: ${CUSTOMER_SERVICE_URL:http://localhost:8088}
+#          predicates:
+#            - Path=/api/customers/**
+#          filters:
+#            - StripPrefix=0
+#
+#        - id: order-service
+#          uri: ${ORDER_SERVICE_URL:http://localhost:8083}
+#          predicates:
+#            - Path=/api/orders/**
+#          filters:
+#            - StripPrefix=0
+#
+#        - id: notification-service
+#          uri: http://localhost:8086
+#          predicates:
+#            - Path=/notifications/**
+#          filters:
+#            - StripPrefix=0
+#
+#
+#        - id: payment-service
+#          uri: ${PAYMENT_SERVICE_URL:http://localhost:8087}
+#          predicates:
+#            - Path=/api/payments/**
+#          filters:
+#            - StripPrefix=0
+#
+#management:
+#  endpoints:
+#    web:
+#      exposure:
+#        include: health, info, routes
+#  endpoint:
+#    health:
+#      show-details: always
+#
+#logging:
+#  level:
+#    org.springframework.cloud.gateway: DEBUG
+
+
+
+
 server:
   port: 8080
 
@@ -25,29 +96,28 @@ spring:
             - StripPrefix=0
 
         - id: customer-service
-          uri: ${CUSTOMER_SERVICE_URL:http://localhost:8086}
+          uri: ${CUSTOMER_SERVICE_URL:http://localhost:8088}
           predicates:
             - Path=/api/customers/**
           filters:
             - StripPrefix=0
 
         - id: order-service
-          uri: ${ORDER_SERVICE_URL:http://localhost:8082}
+          uri: ${ORDER_SERVICE_URL:http://localhost:8083}
           predicates:
             - Path=/api/orders/**
           filters:
             - StripPrefix=0
 
         - id: notification-service
-          uri: http://localhost:8085
+          uri: http://localhost:8086
           predicates:
             - Path=/notifications/**
           filters:
             - StripPrefix=0
 
-
         - id: payment-service
-          uri: ${PAYMENT_SERVICE_URL:http://localhost:8083}
+          uri: ${PAYMENT_SERVICE_URL:http://localhost:8087}
           predicates:
             - Path=/api/payments/**
           filters:
@@ -65,3 +135,18 @@ management:
 logging:
   level:
     org.springframework.cloud.gateway: DEBUG
+
+# 🔥 THIS IS THE NEW PART ADDED TO THE BOTTOM 🔥
+springdoc:
+  swagger-ui:
+    urls:
+      - name: Order Service
+        url: http://localhost:8083/v3/api-docs
+      - name: Notification Service
+        url: http://localhost:8086/v3/api-docs
+      - name: Auth Service
+        url: http://localhost:8084/v3/api-docs
+      - name: Customer Service
+        url: http://localhost:8088/v3/api-docs
+      - name: Payment Service
+        url: http://localhost:8087/v3/api-docs
