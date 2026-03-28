@@ -88,13 +88,11 @@ services:
       - "8082:8082"
     environment:
       - SPRING_PROFILES_ACTIVE=default
-      - DB_URL=jdbc:postgresql://postgres:5432/orderdb
-      - DB_USERNAME=ctse
-      - DB_PASSWORD=ctse_password
+      - MONGODB_URI=mongodb://mongodb:27017/orderdb
       - CUSTOMER_SERVICE_GRPC_HOST=customer-service
       - CUSTOMER_SERVICE_GRPC_PORT=9096
     depends_on:
-      postgres:
+      mongodb:
         condition: service_healthy
       customer-service:
         condition: service_started
@@ -190,4 +188,3 @@ volumes:
 networks:
   microservices-net:
     driver: bridge
-

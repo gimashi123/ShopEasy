@@ -1,0 +1,251 @@
+# Order Service Progress Log
+
+## Step 1 - Initialize Order Service Skeleton
+- Commit-style note: `feat(order-service): bootstrap Spring Boot module with base config and app entrypoint`
+- Completed:
+  - Created new module at `backend/order-service`
+  - Registered module in parent Maven aggregator (`backend/pom.xml`)
+  - Added `pom.xml` with core dependencies (web, mongodb, validation, lombok, actuator, springdoc)
+  - Added `application.yml` with `server.port=8082` and MongoDB `orderdb` configuration
+  - Added main class `OrderServiceApplication`
+- Validation:
+  - Compiled successfully with `./mvnw -Dmaven.repo.local=/tmp/.m2 -pl order-service -am -DskipTests compile`
+- Files created:
+  - `backend/order-service/pom.xml`
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/OrderServiceApplication.java`
+  - `backend/order-service/src/main/resources/application.yml`
+  - `backend/order-service/progress-order-service.txt`
+- Files updated:
+  - `backend/pom.xml`
+- Next step:
+  - Step 2: Create package structure, `Order` entity, `OrderStatus` enum, and repository.
+
+## Step 2 - Package Structure, Entity, Enum, Repository
+- Commit-style note: `feat(order-service): add layered package structure and core order persistence model`
+- Completed:
+  - Created layered package structure: `controller`, `service`, `repository`, `dto`, `model`, `client`, `config`, `exception`, `mapper`
+  - Added `OrderStatus` enum with required lifecycle values
+  - Added MongoDB `Order` document mapped to collection `order`
+  - Added `OrderRepository` with customer and supermarket query methods
+- Validation:
+  - Compiled successfully with `bash ./mvnw -Dmaven.repo.local=/tmp/.m2 -pl order-service -am -DskipTests compile`
+- Files created:
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/controller/package-info.java`
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/service/package-info.java`
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/repository/package-info.java`
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/dto/package-info.java`
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/model/package-info.java`
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/client/package-info.java`
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/config/package-info.java`
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/exception/package-info.java`
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/mapper/package-info.java`
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/model/Order.java`
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/model/OrderStatus.java`
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/repository/OrderRepository.java`
+- Next step:
+  - Step 3: Create request/response DTOs and add validation annotations.
+
+## Step 3 - DTOs and Validation
+- Commit-style note: `feat(order-service): add validated request/response DTO contracts for order APIs`
+- Completed:
+  - Added `CreateOrderRequest` DTO with validation for IDs, quantity, unit price, discount amount, and delivery charge
+  - Added `UpdateOrderRequest` DTO with full-field validation for PUT update operations
+  - Added `UpdateOrderStatusRequest` DTO with status validation for PATCH status endpoint
+  - Added `OrderResponse` DTO for standardized API output
+- Validation:
+  - Compiled successfully with `bash ./mvnw -Dmaven.repo.local=/tmp/.m2 -pl order-service -am -DskipTests compile`
+- Files created:
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/dto/CreateOrderRequest.java`
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/dto/UpdateOrderRequest.java`
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/dto/UpdateOrderStatusRequest.java`
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/dto/OrderResponse.java`
+- Next step:
+  - Step 4: Create service layer and business logic with total calculation and audit timestamps.
+
+## Step 4 - Service Layer and Business Logic
+- Commit-style note: `feat(order-service): implement order service business logic with totals and timestamps`
+- Completed:
+  - Added `OrderService` interface with methods for create, read, update, delete, status update, and filters
+  - Implemented `OrderServiceImpl` using `OrderRepository`
+  - Implemented total calculation logic: `unitPrice * quantity + deliveryCharge - discountAmount`
+  - Added safe non-negative total handling (`totalAmount` never below `0`)
+  - Added `createdAt` and `updatedAt` handling on create/update/status update operations
+  - Added not-found handling via `ResourceNotFoundException`
+- Validation:
+  - Compiled successfully with `bash ./mvnw -Dmaven.repo.local=/tmp/.m2 -pl order-service -am -DskipTests compile`
+- Files created:
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/service/OrderService.java`
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/service/impl/package-info.java`
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/service/impl/OrderServiceImpl.java`
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/exception/ResourceNotFoundException.java`
+- Next step:
+  - Step 5: Create controller endpoints and wire CRUD APIs.
+
+## Step 5 - Controller Endpoints
+- Commit-style note: `feat(order-service): expose order REST controller endpoints for CRUD and status updates`
+- Completed:
+  - Added `OrderController` mapped to `/api/orders`
+  - Wired all required endpoints to `OrderService`
+  - Applied `@Valid` request validation on create, full update, and status update endpoints
+  - Added `201 Created` response with `Location` header for order creation
+- Validation:
+  - Compiled successfully with `bash ./mvnw -Dmaven.repo.local=/tmp/.m2 -pl order-service -am -DskipTests compile`
+- Files created:
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/controller/OrderController.java`
+- Next step:
+  - Step 6: Add global exception handling and validation error responses.
+
+## Step 6 - Global Exception Handling
+- Commit-style note: `feat(order-service): add centralized API error handling and validation responses`
+- Completed:
+  - Added `GlobalExceptionHandler` with consistent error response mapping
+  - Added handling for:
+    - `ResourceNotFoundException` -> `404 Not Found`
+    - `MethodArgumentNotValidException` -> `400 Bad Request` with field-level validation details
+    - `IllegalStateException` / `IllegalArgumentException` / `BusinessRuleException` -> `409 Conflict`
+    - `DownstreamServiceException` -> `502 Bad Gateway`
+    - Generic `Exception` -> `500 Internal Server Error`
+  - Added reusable `ApiErrorResponse` structure for all error responses
+  - Added `BusinessRuleException` and `DownstreamServiceException` for current/future business and integration errors
+- Validation:
+  - Compiled successfully with `bash ./mvnw -Dmaven.repo.local=/tmp/.m2 -pl order-service -am -DskipTests compile`
+- Files created:
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/exception/GlobalExceptionHandler.java`
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/exception/ApiErrorResponse.java`
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/exception/BusinessRuleException.java`
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/exception/DownstreamServiceException.java`
+- Next step:
+  - Step 7: Add Swagger/OpenAPI configuration for API documentation.
+
+## Step 7 - Swagger/OpenAPI Configuration
+- Commit-style note: `feat(order-service): configure OpenAPI metadata and Swagger server entries`
+- Completed:
+  - Added `OpenApiConfig` to publish OpenAPI metadata (title, description, version, contact, license)
+  - Added OpenAPI server entries for:
+    - Direct service access: `http://localhost:8082`
+    - Gateway access: `http://localhost:8080`
+  - Kept Swagger endpoints configured in `application.yml`:
+    - API docs: `/v3/api-docs`
+    - Swagger UI: `/swagger-ui.html`
+- Validation:
+  - Compiled successfully with `bash ./mvnw -Dmaven.repo.local=/tmp/.m2 -pl order-service -am -DskipTests compile`
+- Files created:
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/config/OpenApiConfig.java`
+- Next step:
+  - Step 8: Add external service client structure/config for Product, Supermarket, Promotion, Delivery, and Notification services.
+
+## Step 8 - External Service Client Structure and Config
+- Commit-style note: `feat(order-service): add integration-ready external service client contracts and stubs`
+- Completed:
+  - Added configurable external service URLs under `services.*.base-url`
+  - Added `ExternalServicesProperties` to bind Product, Supermarket, Promotion, Delivery, and Notification service endpoints
+  - Added client interfaces for all external services:
+    - `ProductServiceClient`
+    - `SupermarketServiceClient`
+    - `PromotionServiceClient`
+    - `DeliveryServiceClient`
+    - `NotificationServiceClient`
+  - Added client DTOs for integration contracts:
+    - `ProductInfo`
+    - `SupermarketInfo`
+    - `PromotionInfo`
+  - Added safe stub implementations for all clients with structured logs and non-breaking defaults
+- Validation:
+  - Compiled successfully with `bash ./mvnw -Dmaven.repo.local=/tmp/.m2 -pl order-service -am -DskipTests compile`
+- Files created:
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/config/ExternalServicesProperties.java`
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/client/ProductServiceClient.java`
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/client/SupermarketServiceClient.java`
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/client/PromotionServiceClient.java`
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/client/DeliveryServiceClient.java`
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/client/NotificationServiceClient.java`
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/client/dto/package-info.java`
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/client/dto/ProductInfo.java`
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/client/dto/SupermarketInfo.java`
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/client/dto/PromotionInfo.java`
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/client/impl/package-info.java`
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/client/impl/ProductServiceClientStub.java`
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/client/impl/SupermarketServiceClientStub.java`
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/client/impl/PromotionServiceClientStub.java`
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/client/impl/DeliveryServiceClientStub.java`
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/client/impl/NotificationServiceClientStub.java`
+- Files updated:
+  - `backend/order-service/src/main/resources/application.yml`
+- Next step:
+  - Step 9: Review structure and run readiness, provide run steps and sample Postman requests.
+
+## Step 9 - Final Review, Run Guide, and Postman Samples
+- Commit-style note: `docs(order-service): finalize run readiness review and add execution/postman guide`
+- Completed:
+  - Reviewed project structure consistency across layers:
+    - `controller`, `service`, `repository`, `dto`, `model`, `client`, `config`, `exception`, `mapper`
+  - Confirmed required order workflow APIs are present and wired
+  - Confirmed MongoDB and service URL configuration placeholders are present in `application.yml`
+  - Confirmed Swagger/OpenAPI docs are configured and reachable paths are defined
+  - Added a dedicated `README.md` for:
+    - prerequisites
+    - run commands
+    - endpoint list
+    - sample Postman request bodies and URLs
+  - Verified compile/run readiness at build level
+- Validation:
+  - Compiled successfully with `bash ./mvnw -Dmaven.repo.local=/tmp/.m2 -pl order-service -am -DskipTests compile`
+- Files created:
+  - `backend/order-service/README.md`
+- Next step:
+  - Base implementation complete. Optional next improvement: add unit/integration tests for service and controller layers.
+
+## Step 10 - Basic Test Coverage (Optional Improvement)
+- Commit-style note: `test(order-service): add foundational service and controller test coverage`
+- Completed:
+  - Added unit tests for `OrderServiceImpl`:
+    - order creation total calculation + default status + timestamps
+    - resource-not-found behavior for missing order id
+  - Added Web MVC controller tests for `OrderController`:
+    - successful create endpoint response (`201 Created`)
+    - validation error response structure for invalid update payload (`400 Bad Request`)
+  - Verified test execution for `order-service` module
+- Validation:
+  - Tests passed with `bash ./mvnw -Dmaven.repo.local=/tmp/.m2 -pl order-service -am test`
+  - Result summary: `Tests run: 4, Failures: 0, Errors: 0, Skipped: 0`
+- Files created:
+  - `backend/order-service/src/test/java/com/shopeasy/orderservice/service/impl/OrderServiceImplTest.java`
+  - `backend/order-service/src/test/java/com/shopeasy/orderservice/controller/OrderControllerTest.java`
+- Next step:
+  - Optional next improvement: replace stub external clients with real HTTP clients (e.g., WebClient/OpenFeign) and add integration tests.
+
+## Step 11 - Port Update (8083 -> 8082)
+- Commit-style note: `chore(order-service): switch service port from 8083 to 8082`
+- Completed:
+  - Updated Order Service runtime port to `8082`
+  - Updated OpenAPI direct server URL to `http://localhost:8082`
+  - Updated Order Service documentation references from `8083` to `8082`
+  - Confirmed existing `docker-compose.yml` already uses `8082` for `order-service`
+- Validation:
+  - Compiled successfully with `bash ./mvnw -Dmaven.repo.local=/tmp/.m2 -pl order-service -am -DskipTests compile`
+- Files updated:
+  - `backend/order-service/src/main/resources/application.yml`
+  - `backend/order-service/src/main/java/com/shopeasy/orderservice/config/OpenApiConfig.java`
+  - `backend/order-service/README.md`
+  - `backend/order-service/progress-order-service.txt`
+- Next step:
+  - Optional next improvement: replace stub external clients with real HTTP clients and add integration tests.
+
+## Step 12 - Mongo Persistence Configuration Fix
+- Commit-style note: `fix(order-service): align mongo uri configuration for local and docker runtime`
+- Completed:
+  - Updated Order Service Mongo URI resolution to support both:
+    - `MONGODB_URI`
+    - `MONGO_URI`
+  - Fixed `docker-compose.yml` Order Service environment:
+    - removed PostgreSQL-style `DB_*` variables from Order Service
+    - added `MONGODB_URI=mongodb://mongodb:27017/orderdb`
+  - Fixed Order Service docker dependency to wait for `mongodb` health instead of `postgres`
+- Validation:
+  - Compiled successfully with `bash ./mvnw -Dmaven.repo.local=/tmp/.m2 -pl order-service -am -DskipTests compile`
+- Files updated:
+  - `backend/order-service/src/main/resources/application.yml`
+  - `docker-compose.yml`
+  - `backend/order-service/progress-order-service.txt`
+- Next step:
+  - Verify persisted data by creating an order and checking `orderdb.order` in the same Mongo instance used by Order Service.
