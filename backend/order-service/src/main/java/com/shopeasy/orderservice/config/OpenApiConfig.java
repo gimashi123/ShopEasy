@@ -25,7 +25,7 @@ public class OpenApiConfig {
                                 .name("Internal Use")
                                 .url("https://shopeasy.local/license")))
                 .addServersItem(new Server()
-                        .url("http://localhost:8082")
+                        .url("http://localhost:8083")
                         .description("Direct Order Service"))
                 .addServersItem(new Server()
                         .url("http://localhost:8080")
