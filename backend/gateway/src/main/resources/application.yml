@@ -139,8 +139,6 @@ spring:
           uri: ${AUTH_SERVICE_URL:http://localhost:8081}
           predicates:
             - Path=/api/auth/**
-          filters:
-            - StripPrefix=0
 
         - id: delivery-service
           uri: ${DELIVERY_SERVICE_URL:http://localhost:8082}
@@ -154,7 +152,7 @@ spring:
           predicates:
             - Path=/api/orders/**
           filters:
-            - StripPrefix=0
+            - AddRequestHeader=X-Gateway-Key, ${GATEWAY_SHARED_KEY:change-me-order-key}
 
         - id: product-service
           uri: ${PRODUCT_SERVICE_URL:http://localhost:8084}
