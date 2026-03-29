@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   Menu, X, LayoutDashboard, ShoppingBag,
   MapPin, User, LogOut, Settings, ChevronUp,
-  ChevronRight, MessageSquare, Gift, ShoppingBasket
+  ChevronRight, MessageSquare, Gift, ShoppingBasket, Megaphone
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -101,6 +101,23 @@ export function AppLayout({ children }: AppLayoutProps) {
             >
               <Settings size={18} />
               Admin Pricing
+            </Link>
+          )}
+
+          {user?.roles?.includes("ROLE_ADMIN") && (
+            <Link
+              to="/admin/promotions"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`
+                flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors mt-2
+                ${location.pathname === "/admin/promotions"
+                  ? "bg-white/20 text-white"
+                  : "text-yellow-400 hover:bg-white/10 hover:text-yellow-300"
+                }
+              `}
+            >
+              <Megaphone size={18} />
+              Manage Promotions
             </Link>
           )}
         </nav>

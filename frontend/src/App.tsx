@@ -16,6 +16,7 @@ import MakePaymentPage from "@/pages/MakePaymentPage";
 import PaymentDetailPage from "@/pages/PaymentDetailPage";
 import CustomerProfilePage from "@/pages/CustomerProfilePage";
 import AdminSettingsPage from "@/pages/AdminSettingsPage";
+import AdminPromotionsPage from "@/pages/AdminPromotionsPage";
 import NotFound from "@/pages/NotFound";
 import AddressesPage from "@/pages/AddressesPage.tsx";
 import LoyaltyPage from "@/pages/LoyaltyPage.tsx";
@@ -50,6 +51,7 @@ const App = () => (
               <Route path="/payments/create" element={<MakePaymentPage />} />
               <Route path="/payments/:id" element={<PaymentDetailPage />} />
               <Route path="/admin/settings" element={<AdminSettingsPage />} />
+              <Route path="/admin/promotions" element={<AdminPromotionsPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

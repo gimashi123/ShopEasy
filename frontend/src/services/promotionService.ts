@@ -36,5 +36,20 @@ export const promotionService = {
   getPromotionsByProduct: async (productId: string) => {
     const response = await api.get<ApiResponse<Promotion[]>>(`/promotions/product/${productId}`);
     return response.data.data;
+  },
+
+  createPromotion: async (request: any) => {
+    const response = await api.post<ApiResponse<Promotion>>("/promotions", request);
+    return response.data.data;
+  },
+
+  updatePromotion: async (id: string, request: any) => {
+    const response = await api.put<ApiResponse<Promotion>>(`/promotions/${id}`, request);
+    return response.data.data;
+  },
+
+  deletePromotion: async (id: string) => {
+    const response = await api.delete<ApiResponse<void>>(`/promotions/${id}`);
+    return response.data.data;
   }
 };
