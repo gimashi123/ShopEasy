@@ -18,16 +18,21 @@
 #            allowCredentials: true
 #      routes:
 #        - id: auth-service
-#          uri: ${AUTH_SERVICE_URL:http://localhost:8084}
+#          uri: ${AUTH_SERVICE_URL:http://localhost:8081}
 #          predicates:
 #            - Path=/api/auth/**
 #          filters:
 #            - StripPrefix=0
 #
+#<<<<<<< HEAD
 #        - id: customer-service
 #          uri: ${CUSTOMER_SERVICE_URL:http://localhost:8088}
+#=======
+#        - id: delivery-service
+#          uri: ${DELIVERY_SERVICE_URL:http://localhost:8082}
+#>>>>>>> f7e1dc3b79a66402119be37f8bc42e2656134c1b
 #          predicates:
-#            - Path=/api/customers/**
+#            - Path=/api/delivery/**
 #          filters:
 #            - StripPrefix=0
 #
@@ -38,6 +43,7 @@
 #          filters:
 #            - StripPrefix=0
 #
+#<<<<<<< HEAD
 #        - id: notification-service
 #          uri: http://localhost:8086
 #          predicates:
@@ -45,13 +51,41 @@
 #          filters:
 #            - StripPrefix=0
 #
-#
 #        - id: payment-service
 #          uri: ${PAYMENT_SERVICE_URL:http://localhost:8087}
+#=======
+#        - id: product-service
+#          uri: ${PRODUCT_SERVICE_URL:http://localhost:8084}
+#>>>>>>> f7e1dc3b79a66402119be37f8bc42e2656134c1b
 #          predicates:
-#            - Path=/api/payments/**
+#            - Path=/api/product/**
 #          filters:
 #            - StripPrefix=0
+#
+#        - id: promotion-service
+#          uri: ${PROMOTION_SERVICE_URL:http://localhost:8085}
+#          predicates:
+#            - Path=/api/promotion/**
+#          filters:
+#            - StripPrefix=0
+#
+#        - id: notification-service
+#          uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8086}
+#          predicates:
+#            - Path=/api/notification/**
+#          filters:
+#            - StripPrefix=0
+#
+#        - id: supermarket-service
+#          uri: ${SUPERMARKET_SERVICE_URL:http://localhost:8087}
+#          predicates:
+#            - Path=/api/supermarket/**
+#          filters:
+#            - StripPrefix=0
+#
+#
+#
+#
 #
 #management:
 #  endpoints:
@@ -65,10 +99,21 @@
 #logging:
 #  level:
 #    org.springframework.cloud.gateway: DEBUG
-
-
-
-
+#
+## 🔥 THIS IS THE NEW PART ADDED TO THE BOTTOM 🔥
+#springdoc:
+#  swagger-ui:
+#    urls:
+#      - name: Order Service
+#        url: http://localhost:8083/v3/api-docs
+#      - name: Notification Service
+#        url: http://localhost:8086/v3/api-docs
+#      - name: Auth Service
+#        url: http://localhost:8084/v3/api-docs
+#      - name: Customer Service
+#        url: http://localhost:8088/v3/api-docs
+#      - name: Payment Service
+#        url: http://localhost:8087/v3/api-docs
 server:
   port: 8080
 
@@ -87,6 +132,7 @@ spring:
             allowedMethods: "*"
             allowedHeaders: "*"
             allowCredentials: true
+
       routes:
         - id: auth-service
           uri: ${AUTH_SERVICE_URL:http://localhost:8084}
@@ -102,6 +148,13 @@ spring:
           filters:
             - StripPrefix=0
 
+        - id: delivery-service
+          uri: ${DELIVERY_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/delivery/**
+          filters:
+            - StripPrefix=0
+
         - id: order-service
           uri: ${ORDER_SERVICE_URL:http://localhost:8083}
           predicates:
@@ -109,10 +162,10 @@ spring:
           filters:
             - StripPrefix=0
 
-        - id: notification-service
-          uri: http://localhost:8086
+        - id: product-service
+          uri: ${PRODUCT_SERVICE_URL:http://localhost:8084}
           predicates:
-            - Path=/notifications/**
+            - Path=/api/product/**
           filters:
             - StripPrefix=0
 
@@ -120,6 +173,27 @@ spring:
           uri: ${PAYMENT_SERVICE_URL:http://localhost:8087}
           predicates:
             - Path=/api/payments/**
+          filters:
+            - StripPrefix=0
+
+        - id: promotion-service
+          uri: ${PROMOTION_SERVICE_URL:http://localhost:8085}
+          predicates:
+            - Path=/api/promotion/**
+          filters:
+            - StripPrefix=0
+
+        - id: notification-service
+          uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8086}
+          predicates:
+            - Path=/api/notification/**
+          filters:
+            - StripPrefix=0
+
+        - id: supermarket-service
+          uri: ${SUPERMARKET_SERVICE_URL:http://localhost:8087}
+          predicates:
+            - Path=/api/supermarket/**
           filters:
             - StripPrefix=0
 
@@ -136,7 +210,7 @@ logging:
   level:
     org.springframework.cloud.gateway: DEBUG
 
-# 🔥 THIS IS THE NEW PART ADDED TO THE BOTTOM 🔥
+# Swagger aggregation
 springdoc:
   swagger-ui:
     urls:

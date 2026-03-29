@@ -22,7 +22,11 @@
         <module>grpc-lib</module>
         <module>auth-service</module>
         <module>gateway</module>
+
         <module>notification-service</module>
+
+
+        <module>promotion-service</module>
 
     </modules>
 
@@ -65,6 +69,11 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <dependency>
+    <groupId>org.springdoc</groupId>
+    <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+    <version>2.5.0</version>
+</dependency>
         </dependencies>
     </dependencyManagement>
 

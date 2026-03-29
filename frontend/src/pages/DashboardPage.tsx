@@ -7,12 +7,35 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ShoppingCart, Clock, CreditCard, Package } from "lucide-react";
+import { 
+  ShoppingCart, Clock, CreditCard, Package, ShoppingBasket, 
+  DollarSign, Zap, ChevronDown, ChevronRight, ChevronLeft, Apple, Milk, Baby, Cookie, 
+  Coffee, Home, Search, ArrowRight, Percent
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import { getOrderStatusVariant, formatCurrency, formatDate } from "@/lib/helpers";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+
+const CATEGORIES = [
+  { name: "Baby Products", icon: Baby },
+  { name: "Dairy", icon: Milk },
+  { name: "Beverages", icon: Coffee },
+  { name: "Food Cupboard", icon: Cookie },
+  { name: "Household", icon: Home },
+  { name: "Tea & Coffee", icon: Coffee },
+];
+
+const CIRCLE_CATEGORIES = [
+  { name: "Vegetables", image: "https://images.unsplash.com/photo-1566385101042-1a0aa0c12e8c?w=200&h=200&fit=crop" },
+  { name: "Fruits", image: "https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=200&h=200&fit=crop" },
+  { name: "Baby Products", image: "https://images.unsplash.com/photo-1622295023583-61c1bc9aa8ad?w=200&h=200&fit=crop" },
+  { name: "Dairy", image: "https://images.unsplash.com/photo-1550583724-125581fe2f8a?w=200&h=200&fit=crop" },
+  { name: "Beverages", image: "https://images.unsplash.com/photo-1625772290748-39126ddd6940?w=200&h=200&fit=crop" },
+  { name: "Food Cupboard", image: "https://images.unsplash.com/photo-1534483509719-3feaee7c30da?w=200&h=200&fit=crop" },
+  { name: "Household", image: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=200&h=200&fit=crop" },
+];
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -29,11 +52,10 @@ export default function DashboardPage() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const isAdmin = user?.roles.includes("ROLE_ADMIN");
+
   useEffect(() => {
     if (!user?.id) return;
-    
-    // Check if user is an admin
-    const isAdmin = user.roles.includes("ROLE_ADMIN");
 
     const fetchDashboardData = async () => {
       try {
@@ -67,120 +89,159 @@ export default function DashboardPage() {
   const recentOrders = orders.slice(0, 5);
 
   const stats = [
-    { label: "Total Orders", value: totalOrders, icon: ShoppingCart, color: "text-primary" },
-    { label: "Pending Orders", value: pendingOrders, icon: Clock, color: "text-status-pending-fg" },
-    { label: "Completed Payments", value: completedPayments, icon: CreditCard, color: "text-status-success-fg" },
-    { label: "Active Orders", value: orders.filter((o) => !["DELIVERED", "CANCELLED"].includes(o.status)).length, icon: Package, color: "text-status-active-fg" },
+    { label: "Total Shop", value: totalOrders, icon: ShoppingBasket, color: "text-primary" },
+    { label: "Pending Delivery", value: pendingOrders, icon: Clock, color: "text-status-pending-fg" },
+    { label: "Saved Today", value: formatCurrency(25.50), icon: DollarSign, color: "text-emerald-600" }, // Simulated savings
+    { label: "Reward Points", value: "450", icon: Zap, iconColor: "text-orange-500", color: "text-orange-500" },
   ];
 
   return (
-    <div className="space-y-10 max-w-6xl mx-auto pb-10">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          {user?.roles.includes("ROLE_ADMIN") ? "Admin Dashboard" : "My Dashboard"}
-        </h1>
-        <p className="text-base text-muted-foreground mt-2">Welcome back, {user?.username || "Guest"}</p>
+    <div className="space-y-6 max-w-[1400px] mx-auto pb-10">
+      {/* Category Navigation Bar */}
+      <div className="bg-white border-b border-border -mx-4 md:-mx-8 lg:px-8 px-4 py-2 flex items-center justify-between sticky top-0 z-40 bg-white/95 backdrop-blur">
+        <div className="flex items-center gap-6 overflow-x-auto no-scrollbar">
+          <Button className="bg-[#FFCC00] hover:bg-[#E6B800] text-black font-bold h-10 px-4 shrink-0 rounded-none md:rounded-sm">
+            Shop By Category <ChevronDown className="ml-2 h-4 w-4" />
+          </Button>
+          <div className="flex items-center gap-6">
+            {CATEGORIES.map(cat => (
+              <Link key={cat.name} to="/orders/create" className="text-sm font-medium text-slate-600 hover:text-primary whitespace-nowrap transition-colors">
+                {cat.name}
+              </Link>
+            ))}
+          </div>
+        </div>
+        <div className="hidden md:flex items-center gap-2 text-sm text-slate-500 whitespace-nowrap">
+          <span className="font-medium text-slate-800">Delivery Today</span>
+          <span className="bg-slate-100 px-2 py-0.5 rounded text-xs tabular-nums">04:00PM-09:00PM</span>
+        </div>
       </div>
 
-      {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-32 rounded-xl" />
-          ))}
+      {/* Main Hero Banner */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative h-[300px] md:h-[400px] rounded-2xl overflow-hidden bg-gradient-to-r from-emerald-600 to-green-500 group"
+      >
+        <img 
+          src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?q=80&w=2070&auto=format&fit=crop" 
+          className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-40 group-hover:scale-105 transition-transform duration-700" 
+          alt="Fresh Vegetables"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex flex-col justify-end p-8 md:p-12">
+          <div className="max-w-2xl space-y-4">
+            <div className="inline-flex items-center gap-2 bg-yellow-400 text-black px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest animate-pulse">
+              <Percent className="h-3 w-3" /> Save Big
+            </div>
+            <h2 className="text-4xl md:text-6xl font-black text-white leading-tight">
+              SAVE ON <br />
+              <span className="text-yellow-400">VEGETABLES</span> & FRUITS
+            </h2>
+            <div className="flex flex-wrap items-center gap-6">
+              <Button size="lg" className="bg-white text-emerald-700 hover:bg-yellow-400 hover:text-black font-black text-lg px-8 py-7 h-auto rounded-xl transition-all shadow-xl shadow-black/20">
+                SHOP NOW
+              </Button>
+              <div className="text-white font-bold opacity-90 border-l-2 border-white/30 pl-6">
+                <p className="text-sm uppercase tracking-wider">Every Tuesday & Saturday</p>
+                <p className="text-xs font-medium text-emerald-100">Apply promo code at checkout</p>
+              </div>
+            </div>
+          </div>
         </div>
-      ) : (
-        <motion.div
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          {stats.map((stat) => (
-            <motion.div key={stat.label} variants={itemVariants}>
-              <Card className="hover:border-primary/50 transition-colors">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between space-y-0">
-                    <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">{stat.label}</p>
-                    <div className={cn("p-2.5 rounded-full bg-slate-100 dark:bg-slate-800", stat.color)}>
-                      <stat.icon className="h-5 w-5" />
-                    </div>
-                  </div>
-                  <div className="mt-4 flex items-baseline gap-2">
-                    <p className="text-4xl font-semibold tabular-nums text-foreground">{stat.value}</p>
-                  </div>
-                </CardContent>
-              </Card>
+      </motion.div>
+
+      {/* Sub-promotional Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { title: "SNACK MANIA", subtitle: "FLAT 30% OFF!", desc: "For Maliban Savoury Biscuits", color: "from-orange-500 to-amber-500" },
+          { title: "Safe-on-skin", subtitle: "Protection you know", desc: "Get up to 40% OFF", color: "from-sky-500 to-blue-600" },
+          { title: "KIST MAYO/SAUCE", subtitle: "TRUSTED TASTE", desc: "Perfect with everything", color: "from-red-500 to-rose-600" },
+          { title: "THE FRESHNESS", subtitle: "THAT KEEPS UP WITH YOU", desc: "Shop Now", color: "from-indigo-600 to-violet-700" },
+        ].map((promo, idx) => (
+          <motion.div
+            key={promo.title}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.1 * idx }}
+            className={cn("relative h-48 rounded-2xl overflow-hidden bg-gradient-to-br p-6 flex flex-col justify-between text-white shadow-lg", promo.color)}
+          >
+            <div className="relative z-10">
+              <h4 className="font-black text-lg leading-tight uppercase">{promo.title}</h4>
+              <p className="text-3xl font-black text-white/90 leading-tight mt-1">{promo.subtitle}</p>
+            </div>
+            <div className="relative z-10 flex justify-between items-end">
+              <p className="text-xs font-bold text-white/80 max-w-[120px]">{promo.desc}</p>
+              <div className="p-2 rounded-full bg-white/20 backdrop-blur">
+                <ArrowRight className="h-4 w-4" />
+              </div>
+            </div>
+            {/* Abstract shapes for vibe */}
+            <div className="absolute -right-4 -bottom-4 w-24 h-24 rounded-full bg-white/10 blur-2xl" />
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Shop by Category Circular Section */}
+      <div className="bg-white rounded-3xl p-8 border border-border shadow-sm">
+        <div className="flex justify-between items-center mb-8">
+          <h2 className="text-2xl font-black text-slate-800">Shop by Category</h2>
+          <Link to="/orders/create" className="text-primary font-bold hover:underline flex items-center gap-1">
+            View more <ChevronRight className="h-4 w-4" />
+          </Link>
+        </div>
+        <div className="flex items-center gap-4 overflow-x-auto no-scrollbar pb-2">
+          {CIRCLE_CATEGORIES.map((cat, i) => (
+            <motion.div 
+              key={cat.name}
+              whileHover={{ y: -5 }}
+              className="flex flex-col items-center gap-4 min-w-[120px]"
+            >
+              <div className="w-24 h-24 rounded-full border-2 border-slate-100 overflow-hidden bg-white shadow-sm hover:border-primary/50 p-1 transition-colors">
+                <img src={cat.image} className="w-full h-full object-cover rounded-full" alt={cat.name} />
+              </div>
+              <span className="text-sm font-bold text-slate-700 text-center">{cat.name}</span>
             </motion.div>
           ))}
-        </motion.div>
-      )}
+        </div>
+      </div>
 
-      <div>
-        <h2 className="text-xl font-semibold tracking-tight mb-4">Recent Orders</h2>
-        <Card className="overflow-hidden">
-          <CardContent className="p-0">
-            {loading ? (
-              <div className="space-y-3 p-6">
-                {[1, 2, 3].map((i) => <Skeleton key={i} className="h-12 w-full" />)}
-              </div>
-            ) : recentOrders.length === 0 ? (
-              <div className="text-center py-16">
-                <div className="mx-auto h-16 w-16 rounded-full bg-slate-50 flex items-center justify-center mb-4">
-                  <ShoppingCart className="h-8 w-8 text-muted-foreground/40" />
-                </div>
-                <h3 className="text-lg font-medium text-foreground">No orders yet</h3>
-                <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">You haven't placed any laundry orders. Create your first order to get started.</p>
-                <Button asChild className="mt-6">
-                  <Link to="/orders/create">Create New Order</Link>
-                </Button>
-              </div>
-            ) : (
-              <Table>
-                <TableHeader className="bg-slate-50/50 dark:bg-slate-900/50">
-                  <TableRow className="hover:bg-transparent border-b-border">
-                    <TableHead className="py-4 pl-6">Order ID</TableHead>
-                    <TableHead className="py-4">Service</TableHead>
-                    <TableHead className="py-4 text-right">Total</TableHead>
-                    <TableHead className="py-4">Status</TableHead>
-                    <TableHead className="py-4 pr-6">Date</TableHead>
+      {/* Legacy Recent Orders Section (Optional, kept minimized) */}
+      <div className="mt-12 opacity-60 hover:opacity-100 transition-opacity">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-bold text-slate-700">Recent Purchase History</h2>
+          <Link to="/orders" className="text-sm font-medium text-primary hover:underline">View All</Link>
+        </div>
+        {recentOrders.length > 0 && (
+          <div className="bg-white rounded-2xl border border-border overflow-hidden">
+            <Table>
+              <TableBody>
+                {recentOrders.map((order) => (
+                  <TableRow key={order.id} className="hover:bg-slate-50 border-b-slate-100">
+                    <TableCell className="font-bold py-4">#{order.id}</TableCell>
+                    <TableCell>{order.serviceType === 'STANDARD' ? 'Standard Pack' : 'Custom Basket'}</TableCell>
+                    <TableCell className="text-right font-medium">{formatCurrency(order.totalPrice)}</TableCell>
+                    <TableCell><Badge variant={getOrderStatusVariant(order.status)} className="text-[9px]">{order.status}</Badge></TableCell>
+                    <TableCell className="text-right text-muted-foreground text-xs">{formatDate(order.createdAt)}</TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {recentOrders.map((order) => (
-                    <TableRow key={order.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50 transition-colors border-b-border">
-                      <TableCell className="py-4 pl-6">
-                        <Link to={`/orders/${order.id}`} className="text-primary hover:text-primary/80 font-semibold tabular-nums transition-colors">{order.id}</Link>
-                      </TableCell>
-                      <TableCell className="py-4 text-sm font-medium text-slate-600 dark:text-slate-300">
-                        {order.serviceType.replace("_", " ")}
-                      </TableCell>
-                      <TableCell className="py-4 text-right tabular-nums font-medium text-foreground">
-                        {formatCurrency(order.totalPrice)}
-                      </TableCell>
-                      <TableCell className="py-4">
-                        <Badge variant={getOrderStatusVariant(order.status)} className="uppercase text-[10px] tracking-wider font-semibold px-2.5 py-1">
-                          {order.status.replace("_", " ")}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="py-4 pr-6 text-sm text-muted-foreground whitespace-nowrap">
-                        {formatDate(order.createdAt)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-            {/* View All Orders Banner */}
-            {recentOrders.length > 0 && (
-              <div className="p-4 bg-slate-50 dark:bg-slate-900 border-t border-border flex justify-center">
-                <Button variant="link" asChild className="text-muted-foreground hover:text-foreground">
-                  <Link to="/orders">View all orders &rarr;</Link>
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </div>
     </div>
   );
 }
+
+// Add custom styles for the e-commerce components
+const style = document.createElement('style');
+style.innerHTML = `
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+`;
+document.head.appendChild(style);

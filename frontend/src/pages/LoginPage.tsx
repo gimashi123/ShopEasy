@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Droplets } from "lucide-react";
+import { ShoppingBasket } from "lucide-react";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -28,7 +28,7 @@ export default function LoginPage() {
       if (res.success) {
         login(res.data);
         toast.success(res.message || "Logged in successfully");
-        navigate("/");
+        navigate("/dashboard");
       } else {
         toast.error(res.message || "Login failed");
       }
@@ -44,7 +44,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-            <Droplets className="h-6 w-6 text-primary" />
+            <ShoppingBasket className="h-6 w-6 text-primary" />
           </div>
           <CardTitle className="text-2xl font-bold tracking-tight">Welcome Back</CardTitle>
           <CardDescription>Sign in to manage your orders</CardDescription>
