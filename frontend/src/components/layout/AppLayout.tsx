@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   Menu, X, LayoutDashboard, ShoppingBag,
   MapPin, User, LogOut, Settings, ChevronUp,
-  ChevronRight, MessageSquare, Gift, ShoppingBasket
+  ChevronRight, MessageSquare, Gift, ShoppingBasket, Store
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -32,6 +32,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     { name: "loyalty", href: "/loyalty", icon: Gift },
     { name: "Offers", href: "/offers", icon: MessageSquare },
     { name: "Preferences", href: "/preferences", icon: Settings },
+    { name: "Supermarkets", href: "/supermarkets", icon: Store },
   ];
 
   return (
@@ -87,7 +88,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             );
           })}
 
-          {user?.roles?.includes("ROLE_ADMIN") && (
+          {user?.roles?.some(r => r.includes("ROLE_ADMIN")) && (
             <Link
               to="/admin/settings"
               onClick={() => setIsMobileMenuOpen(false)}
