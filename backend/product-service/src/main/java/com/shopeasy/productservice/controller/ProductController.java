@@ -1,6 +1,7 @@
 package com.shopeasy.productservice.controller;
 
 import com.shopeasy.common.response.ApiResponse;
+import com.shopeasy.productservice.dto.InventoryReductionRequest;
 import com.shopeasy.productservice.dto.ProductRequest;
 import com.shopeasy.productservice.dto.ProductResponse;
 import com.shopeasy.productservice.service.ProductService;
@@ -12,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -112,6 +114,18 @@ public class ProductController {
         return ResponseEntity.ok(
                 ApiResponse.success("Product updated successfully",
                         productService.updateProduct(id, request, imageFile)));
+    }
+
+    /**
+     * Used when an order is placed and stock must be reduced for one supermarket.
+     */
+    @PatchMapping("/{id}/inventory/reduce")
+    public ResponseEntity<ApiResponse<ProductResponse>> reduceInventory(
+            @PathVariable String id,
+            @Valid @RequestBody InventoryReductionRequest request) {
+        return ResponseEntity.ok(
+                ApiResponse.success("Product inventory reduced successfully",
+                        productService.reduceInventory(id, request)));
     }
 
     @DeleteMapping("/{id}")

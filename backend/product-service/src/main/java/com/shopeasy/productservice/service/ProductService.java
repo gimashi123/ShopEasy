@@ -3,6 +3,7 @@ package com.shopeasy.productservice.service;
 import com.shopeasy.common.exception.BadRequestException;
 import com.shopeasy.common.exception.ConflictException;
 import com.shopeasy.common.exception.ResourceNotFoundException;
+import com.shopeasy.productservice.dto.InventoryReductionRequest;
 import com.shopeasy.productservice.dto.ProductInventoryRequest;
 import com.shopeasy.productservice.dto.ProductInventoryResponse;
 import com.shopeasy.productservice.dto.ProductRequest;
@@ -98,6 +99,33 @@ public class ProductService {
      */
     public boolean productExists(String id) {
         return productRepository.existsById(id);
+    }
+
+    /**
+     * Reduces stock for one supermarket when an order is placed.
+     */
+    public ProductResponse reduceInventory(String id, InventoryReductionRequest request) {
+        Product product = findProductById(id);
+        String targetSupermarketId = request.getSupermarketId().trim();
+
+        ProductInventory inventory = product.getInventories().stream()
+                .filter(entry -> entry.getSupermarketId().equals(targetSupermarketId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Product inventory", "supermarketId", targetSupermarketId));
+
+        if (inventory.getQuantity() < request.getQuantity()) {
+            throw new BadRequestException("Not enough stock available for the requested supermarket");
+        }
+
+        inventory.setQuantity(inventory.getQuantity() - request.getQuantity());
+        product.setAvailable(isAvailable(product.getInventories()));
+        product.setUpdatedAt(Instant.now());
+
+        Product updatedProduct = productRepository.save(product);
+        log.info("Reduced stock: productId={}, supermarketId={}, reducedBy={}",
+                updatedProduct.getId(), targetSupermarketId, request.getQuantity());
+        return mapToResponse(updatedProduct);
     }
 
     public ProductResponse updateProduct(String id, ProductRequest request) {
