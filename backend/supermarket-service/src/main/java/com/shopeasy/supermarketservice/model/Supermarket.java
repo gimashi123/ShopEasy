@@ -27,6 +27,8 @@ public class Supermarket {
 
     private String openingHours;
 
+    private String mapLink;
+
     private Location location;
 
     @Builder.Default

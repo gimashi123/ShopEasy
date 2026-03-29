@@ -139,6 +139,8 @@ spring:
           uri: ${AUTH_SERVICE_URL:http://localhost:8081}
           predicates:
             - Path=/api/auth/**
+          filters:
+            - StripPrefix=0
 
         - id: delivery-service
           uri: ${DELIVERY_SERVICE_URL:http://localhost:8082}
@@ -163,7 +165,7 @@ spring:
 
 
         - id: supermarket-service
-          uri: ${SUPERMARKET_SERVICE_URL:http://localhost:8087}
+          uri: ${SUPERMARKET_SERVICE_URL:http://localhost:8089}
           predicates:
             - Path=/api/supermarkets/**
           filters:
@@ -187,13 +189,6 @@ spring:
           uri: ${REVIEW_SERVICE_URL:http://localhost:8086}
           predicates:
             - Path=/api/reviews/**
-          filters:
-            - StripPrefix=0
-
-        - id: supermarket-service
-          uri: ${SUPERMARKET_SERVICE_URL:http://localhost:8087}
-          predicates:
-            - Path=/api/supermarket/**
           filters:
             - StripPrefix=0
 
@@ -227,4 +222,4 @@ springdoc:
       - name: Review Service
         url: http://localhost:8086/v3/api-docs
       - name: Supermarket Service
-        url: http://localhost:8087/v3/api-docs
+        url: http://localhost:8089/v3/api-docs

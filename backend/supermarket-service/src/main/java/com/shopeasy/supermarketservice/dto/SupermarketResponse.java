@@ -16,6 +16,7 @@ public class SupermarketResponse {
     private String phone;
     private String email;
     private String openingHours;
+    private String mapLink;
     private LocationDto location;
     private boolean active;
     private Instant createdAt;
@@ -44,6 +45,7 @@ public class SupermarketResponse {
                 .phone(supermarket.getPhone())
                 .email(supermarket.getEmail())
                 .openingHours(supermarket.getOpeningHours())
+                .mapLink(supermarket.getMapLink())
                 .location(locationDto)
                 .active(supermarket.isActive())
                 .createdAt(supermarket.getCreatedAt())
