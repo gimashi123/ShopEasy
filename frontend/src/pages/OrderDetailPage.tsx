@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { ArrowLeft, CreditCard, Trash2, ChevronRight, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const STATUS_PROGRESS = ['PENDING', 'PICKED_UP', 'IN_CLEANING', 'OUT_FOR_DELIVERY', 'DELIVERED'];
+const STATUS_PROGRESS = ['PENDING', 'PICKED_UP', 'PROCESSING', 'OUT_FOR_DELIVERY', 'DELIVERED'];
 
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -199,8 +199,8 @@ export default function OrderDetailPage() {
                 {order.serviceType === 'STANDARD' ? (
                   <div className="flex justify-between items-center p-6 bg-white">
                     <div className="flex flex-col">
-                      <span className="font-semibold text-foreground text-lg">Standard Laundry</span>
-                      <span className="text-sm text-muted-foreground mt-1">Weight: {order.weight || 0} Kg @ $12.50/kg</span>
+                      <span className="font-semibold text-foreground text-lg">Standard Grocery Bag</span>
+                      <span className="text-sm text-muted-foreground mt-1">Quantity: {order.weight || 0} items @ $12.50/item</span>
                     </div>
                     <span className="font-semibold tabular-nums text-foreground">{formatCurrency((order.weight || 0) * 12.50)}</span>
                   </div>
@@ -222,7 +222,7 @@ export default function OrderDetailPage() {
                     <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4">Add-ons Selected</h4>
                     {order.isDryClean && (
                       <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium text-slate-600">Dry Cleaning</span>
+                        <span className="text-sm font-medium text-slate-600">Fresh Priority Fee</span>
                         <span className="text-sm font-semibold tabular-nums text-foreground">+$15.00</span>
                       </div>
                     )}
@@ -272,7 +272,7 @@ export default function OrderDetailPage() {
             <CardContent className="p-6 space-y-6">
               <div>
                 <span className="text-xs uppercase tracking-wider font-semibold text-muted-foreground block mb-2">Service Type</span>
-                <Badge className="bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary px-3 py-1 text-sm">{order.serviceType.replace("_", " ")}</Badge>
+                <Badge className="bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary px-3 py-1 text-sm">{order.serviceType === 'STANDARD' ? 'Standard Pack' : 'Custom Basket'}</Badge>
               </div>
               <div>
                 <span className="text-xs uppercase tracking-wider font-semibold text-muted-foreground block mb-1">Customer Ref</span>

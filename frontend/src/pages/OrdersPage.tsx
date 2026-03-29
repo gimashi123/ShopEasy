@@ -88,10 +88,10 @@ export default function OrdersPage() {
                   <TableRow>
                     <TableHead>Order ID</TableHead>
                     <TableHead>Items</TableHead>
-                    <TableHead>Service</TableHead>
-                    <TableHead className="text-right">Total</TableHead>
+                    <TableHead>Order Type</TableHead>
+                    <TableHead className="text-right">Total Price</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Created</TableHead>
+                    <TableHead>Created At</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -106,9 +106,11 @@ export default function OrdersPage() {
                         ))}
                         {order.items.length > 2 && <span>+{order.items.length - 2} more...</span>}
                       </TableCell>
-                      <TableCell className="text-sm">{order.serviceType}</TableCell>
+                      <TableCell className="text-sm">
+                        {order.serviceType === 'STANDARD' ? 'Standard Pack' : 'Custom Basket'}
+                      </TableCell>
                       <TableCell className="text-right tabular-nums font-semibold">{formatCurrency(order.totalPrice)}</TableCell>
-                      <TableCell><Badge variant={getOrderStatusVariant(order.status)}>{order.status}</Badge></TableCell>
+                      <TableCell><Badge variant={getOrderStatusVariant(order.status)} className="font-semibold uppercase text-[10px] tracking-wider">{order.status.replace("_", " ")}</Badge></TableCell>
                       <TableCell className="text-sm text-muted-foreground">{formatDate(order.createdAt)}</TableCell>
                     </TableRow>
                   ))}

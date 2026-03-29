@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   Menu, X, LayoutDashboard, ShoppingBag,
   MapPin, User, LogOut, Settings, ChevronUp,
-  ChevronRight, MessageSquare, Gift
+  ChevronRight, MessageSquare, Gift, ShoppingBasket
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -25,12 +25,12 @@ export function AppLayout({ children }: AppLayoutProps) {
   const { user, logout } = useAuth();
 
   const navigation = [
-    { name: "Dashboard", href: "/", icon: LayoutDashboard },
+    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Orders", href: "/orders", icon: ShoppingBag },
     { name: "My Profile", href: "/profile", icon: User },
     { name: "Addresses", href: "/addresses", icon: MapPin },
-    { name: "loyalty", href: "/loyalty", icon: Gift  },
-    { name: "Feedback", href: "/feedback", icon: MessageSquare  },
+    { name: "loyalty", href: "/loyalty", icon: Gift },
+    { name: "Offers", href: "/offers", icon: MessageSquare },
     { name: "Preferences", href: "/preferences", icon: Settings },
   ];
 
@@ -38,8 +38,11 @@ export function AppLayout({ children }: AppLayoutProps) {
     <div className="h-screen flex overflow-hidden bg-background">
       {/* Mobile Menu Button */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-border z-50 flex items-center justify-between px-4">
-        <span className="text-xl font-bold text-primary">LaundrIQ</span>
-        <button 
+        <div className="flex items-center gap-2">
+          <ShoppingBasket className="h-6 w-6 text-primary" />
+          <span className="text-xl font-bold text-primary">ShopEasy</span>
+        </div>
+        <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           className="p-2 text-foreground"
         >
@@ -48,22 +51,23 @@ export function AppLayout({ children }: AppLayoutProps) {
       </div>
 
       {/* Sidebar Navigation */}
-      <aside 
+      <aside
         className={`
           fixed inset-y-0 left-0 z-40 w-64 bg-[#1E3A8A] text-white transition-transform duration-300 ease-in-out
           lg:translate-x-0 lg:static lg:flex lg:flex-col h-full
           ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}
         `}
       >
-        <div className="h-16 flex items-center px-6 mb-4 hidden lg:flex shrink-0">
-          <span className="text-2xl font-bold text-white">LaundrIQ</span>
+        <div className="h-16 flex items-center px-6 mb-4 hidden lg:flex shrink-0 gap-2">
+          <ShoppingBasket className="h-8 w-8 text-white" />
+          <span className="text-2xl font-bold text-white">ShopEasy</span>
         </div>
-        
+
         <nav className="flex-1 px-4 space-y-2 mt-20 lg:mt-0 overflow-y-auto">
           {navigation.map((item) => {
             const isActive = location.pathname === item.href;
             const Icon = item.icon;
-            
+
             return (
               <Link
                 key={item.name}
@@ -71,8 +75,8 @@ export function AppLayout({ children }: AppLayoutProps) {
                 onClick={() => setIsMobileMenuOpen(false)}
                 className={`
                   flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors
-                  ${isActive 
-                    ? "bg-white/20 text-white" 
+                  ${isActive
+                    ? "bg-white/20 text-white"
                     : "text-gray-300 hover:bg-white/10 hover:text-white"
                   }
                 `}
@@ -82,15 +86,15 @@ export function AppLayout({ children }: AppLayoutProps) {
               </Link>
             );
           })}
-          
+
           {user?.roles?.includes("ROLE_ADMIN") && (
             <Link
               to="/admin/settings"
               onClick={() => setIsMobileMenuOpen(false)}
               className={`
                 flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors mt-4 border-t border-white/10 pt-4
-                ${location.pathname === "/admin/settings" 
-                  ? "bg-white/20 text-white" 
+                ${location.pathname === "/admin/settings"
+                  ? "bg-white/20 text-white"
                   : "text-yellow-400 hover:bg-white/10 hover:text-yellow-300"
                 }
               `}
