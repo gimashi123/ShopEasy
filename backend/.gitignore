@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# order-service local progress/docs files
+order-service/progress-order-service.txt
+order-service/README.md

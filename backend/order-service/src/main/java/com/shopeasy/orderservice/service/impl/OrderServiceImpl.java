@@ -4,10 +4,17 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 
+import com.shopeasy.orderservice.client.AuthServiceClient;
+import com.shopeasy.orderservice.client.ProductServiceClient;
+import com.shopeasy.orderservice.client.SupermarketServiceClient;
+import com.shopeasy.orderservice.client.dto.CustomerInfo;
+import com.shopeasy.orderservice.client.dto.ProductInfo;
+import com.shopeasy.orderservice.client.dto.SupermarketInfo;
 import com.shopeasy.orderservice.dto.CreateOrderRequest;
 import com.shopeasy.orderservice.dto.OrderResponse;
 import com.shopeasy.orderservice.dto.UpdateOrderRequest;
 import com.shopeasy.orderservice.dto.UpdateOrderStatusRequest;
+import com.shopeasy.orderservice.exception.BusinessRuleException;
 import com.shopeasy.orderservice.exception.ResourceNotFoundException;
 import com.shopeasy.orderservice.model.Order;
 import com.shopeasy.orderservice.model.OrderStatus;
@@ -23,9 +30,13 @@ public class OrderServiceImpl implements OrderService {
     private static final BigDecimal ZERO = BigDecimal.ZERO;
 
     private final OrderRepository orderRepository;
+    private final AuthServiceClient authServiceClient;
+    private final ProductServiceClient productServiceClient;
+    private final SupermarketServiceClient supermarketServiceClient;
 
     @Override
     public OrderResponse createOrder(CreateOrderRequest request) {
+        validateExternalReferences(request.getCustomerId(), request.getProductId(), request.getSupermarketId());
         Instant now = Instant.now();
 
         Order order = Order.builder()
@@ -60,6 +71,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderResponse updateOrder(String id, UpdateOrderRequest request) {
+        validateExternalReferences(request.getCustomerId(), request.getProductId(), request.getSupermarketId());
         Order existingOrder = findOrderById(id);
 
         existingOrder.setCustomerId(request.getCustomerId());
@@ -125,6 +137,23 @@ public class OrderServiceImpl implements OrderService {
 
     private BigDecimal defaultAmount(BigDecimal amount) {
         return amount == null ? ZERO : amount;
+    }
+
+    private void validateExternalReferences(String customerId, String productId, String supermarketId) {
+        CustomerInfo customerInfo = authServiceClient.getCustomerById(customerId);
+        if (customerInfo == null || !customerInfo.active()) {
+            throw new BusinessRuleException("Customer not found or inactive for id: " + customerId);
+        }
+
+        ProductInfo productInfo = productServiceClient.getProductById(productId);
+        if (productInfo == null || !productInfo.available()) {
+            throw new BusinessRuleException("Product not found or unavailable for id: " + productId);
+        }
+
+        SupermarketInfo supermarketInfo = supermarketServiceClient.getSupermarketById(supermarketId);
+        if (supermarketInfo == null || !supermarketInfo.active()) {
+            throw new BusinessRuleException("Supermarket not found or inactive for id: " + supermarketId);
+        }
     }
 
     private int requirePositiveQuantity(Integer quantity) {

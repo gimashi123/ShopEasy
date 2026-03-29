@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "services")
 public class ExternalServicesProperties {
 
+    private ServiceEndpoint auth = new ServiceEndpoint();
     private ServiceEndpoint product = new ServiceEndpoint();
     private ServiceEndpoint supermarket = new ServiceEndpoint();
     private ServiceEndpoint promotion = new ServiceEndpoint();

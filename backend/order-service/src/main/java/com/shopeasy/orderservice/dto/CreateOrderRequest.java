@@ -6,6 +6,7 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,13 +18,18 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CreateOrderRequest {
 
+    private static final String OBJECT_ID_REGEX = "^[a-fA-F0-9]{24}$";
+
     @NotBlank(message = "Customer ID is required")
+    @Pattern(regexp = OBJECT_ID_REGEX, message = "Customer ID must be a valid 24-character ObjectId")
     private String customerId;
 
     @NotBlank(message = "Product ID is required")
+    @Pattern(regexp = OBJECT_ID_REGEX, message = "Product ID must be a valid 24-character ObjectId")
     private String productId;
 
     @NotBlank(message = "Supermarket ID is required")
+    @Pattern(regexp = OBJECT_ID_REGEX, message = "Supermarket ID must be a valid 24-character ObjectId")
     private String supermarketId;
 
     @NotNull(message = "Quantity is required")

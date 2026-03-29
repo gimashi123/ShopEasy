@@ -22,6 +22,8 @@ springdoc:
     path: /swagger-ui.html
 
 services:
+  auth:
+    base-url: ${AUTH_SERVICE_BASE_URL:http://localhost:8084}
   product:
     base-url: ${PRODUCT_SERVICE_BASE_URL:http://localhost:8084}
   supermarket:
@@ -32,3 +34,9 @@ services:
     base-url: ${DELIVERY_SERVICE_BASE_URL:http://localhost:8087}
   notification:
     base-url: ${NOTIFICATION_SERVICE_BASE_URL:http://localhost:8088}
+
+security:
+  gateway:
+    enabled: ${GATEWAY_HEADER_VALIDATION_ENABLED:true}
+    header-name: ${GATEWAY_HEADER_NAME:X-Gateway-Key}
+    header-value: ${GATEWAY_SHARED_KEY:change-me-order-key}
