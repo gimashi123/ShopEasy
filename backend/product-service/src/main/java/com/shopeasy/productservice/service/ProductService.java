@@ -1,10 +1,14 @@
 package com.shopeasy.productservice.service;
 
+import com.shopeasy.common.exception.BadRequestException;
 import com.shopeasy.common.exception.ConflictException;
 import com.shopeasy.common.exception.ResourceNotFoundException;
+import com.shopeasy.productservice.dto.ProductInventoryRequest;
+import com.shopeasy.productservice.dto.ProductInventoryResponse;
 import com.shopeasy.productservice.dto.ProductRequest;
 import com.shopeasy.productservice.dto.ProductResponse;
 import com.shopeasy.productservice.model.Product;
+import com.shopeasy.productservice.model.ProductInventory;
 import com.shopeasy.productservice.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +18,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Contains the business logic for product CRUD operations.
@@ -36,17 +42,17 @@ public class ProductService {
         }
 
         Instant now = Instant.now();
+        List<ProductInventory> inventories = normalizeInventories(request.getInventories());
         Product product = Product.builder()
                 .sku(request.getSku().trim())
                 .name(request.getName().trim())
                 .description(request.getDescription())
                 .category(request.getCategory())
                 .brand(request.getBrand())
-                .supermarketId(request.getSupermarketId().trim())
                 .imageUrl(resolveImagePath(request.getImageUrl(), imageFile, null))
                 .price(request.getPrice())
-                .quantity(request.getQuantity())
-                .available(request.getQuantity() > 0)
+                .inventories(inventories)
+                .available(isAvailable(inventories))
                 .createdAt(now)
                 .updatedAt(now)
                 .build();
@@ -72,7 +78,7 @@ public class ProductService {
      * Allows downstream services to fetch all products owned by one supermarket.
      */
     public List<ProductResponse> getProductsBySupermarketId(String supermarketId) {
-        return productRepository.findAllBySupermarketId(supermarketId.trim())
+        return productRepository.findAllByInventoriesSupermarketId(supermarketId.trim())
                 .stream()
                 .map(this::mapToResponse)
                 .toList();
@@ -107,16 +113,16 @@ public class ProductService {
             throw new ConflictException("Product", "sku", request.getSku());
         }
 
+        List<ProductInventory> inventories = normalizeInventories(request.getInventories());
         existingProduct.setSku(request.getSku().trim());
         existingProduct.setName(request.getName().trim());
         existingProduct.setDescription(request.getDescription());
         existingProduct.setCategory(request.getCategory());
         existingProduct.setBrand(request.getBrand());
-        existingProduct.setSupermarketId(request.getSupermarketId().trim());
         existingProduct.setImageUrl(resolveImagePath(request.getImageUrl(), imageFile, existingProduct.getImageUrl()));
         existingProduct.setPrice(request.getPrice());
-        existingProduct.setQuantity(request.getQuantity());
-        existingProduct.setAvailable(request.getQuantity() > 0);
+        existingProduct.setInventories(inventories);
+        existingProduct.setAvailable(isAvailable(inventories));
         existingProduct.setUpdatedAt(Instant.now());
 
         Product updatedProduct = productRepository.save(existingProduct);
@@ -144,14 +150,50 @@ public class ProductService {
                 .description(product.getDescription())
                 .category(product.getCategory())
                 .brand(product.getBrand())
-                .supermarketId(product.getSupermarketId())
                 .imageUrl(product.getImageUrl())
                 .price(product.getPrice())
-                .quantity(product.getQuantity())
+                .inventories(mapInventoryResponses(product.getInventories()))
+                .totalQuantity(calculateTotalQuantity(product.getInventories()))
                 .available(product.getAvailable())
                 .createdAt(product.getCreatedAt())
                 .updatedAt(product.getUpdatedAt())
                 .build();
+    }
+
+    private List<ProductInventory> normalizeInventories(List<ProductInventoryRequest> inventoryRequests) {
+        Set<String> supermarketIds = inventoryRequests.stream()
+                .map(entry -> entry.getSupermarketId().trim())
+                .collect(Collectors.toSet());
+
+        if (supermarketIds.size() != inventoryRequests.size()) {
+            throw new BadRequestException("Each supermarketId can appear only once in inventories");
+        }
+
+        return inventoryRequests.stream()
+                .map(entry -> ProductInventory.builder()
+                        .supermarketId(entry.getSupermarketId().trim())
+                        .quantity(entry.getQuantity())
+                        .build())
+                .toList();
+    }
+
+    private List<ProductInventoryResponse> mapInventoryResponses(List<ProductInventory> inventories) {
+        return inventories.stream()
+                .map(entry -> ProductInventoryResponse.builder()
+                        .supermarketId(entry.getSupermarketId())
+                        .quantity(entry.getQuantity())
+                        .build())
+                .toList();
+    }
+
+    private boolean isAvailable(List<ProductInventory> inventories) {
+        return inventories.stream().anyMatch(entry -> entry.getQuantity() > 0);
+    }
+
+    private int calculateTotalQuantity(List<ProductInventory> inventories) {
+        return inventories.stream()
+                .mapToInt(ProductInventory::getQuantity)
+                .sum();
     }
 
     private String resolveImagePath(String imageUrl, MultipartFile imageFile, String currentImageUrl) {

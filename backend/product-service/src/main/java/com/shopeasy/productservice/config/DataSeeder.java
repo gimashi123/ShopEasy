@@ -1,6 +1,7 @@
 package com.shopeasy.productservice.config;
 
 import com.shopeasy.productservice.model.Product;
+import com.shopeasy.productservice.model.ProductInventory;
 import com.shopeasy.productservice.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,10 +37,12 @@ public class DataSeeder implements CommandLineRunner {
                         .description("Daily fresh full cream milk.")
                         .category("Dairy")
                         .brand("ShopEasy Fresh")
-                        .supermarketId("SM-001")
                         .imageUrl("https://example.com/images/fresh-milk-1l.jpg")
                         .price(new BigDecimal("450.00"))
-                        .quantity(100)
+                        .inventories(List.of(
+                                ProductInventory.builder().supermarketId("SM-001").quantity(60).build(),
+                                ProductInventory.builder().supermarketId("SM-002").quantity(40).build()
+                        ))
                         .available(true)
                         .createdAt(now)
                         .updatedAt(now)
@@ -50,10 +53,12 @@ public class DataSeeder implements CommandLineRunner {
                         .description("Premium quality basmati rice.")
                         .category("Grocery")
                         .brand("Golden Harvest")
-                        .supermarketId("SM-001")
                         .imageUrl("https://example.com/images/basmati-rice-5kg.jpg")
                         .price(new BigDecimal("2450.00"))
-                        .quantity(50)
+                        .inventories(List.of(
+                                ProductInventory.builder().supermarketId("SM-001").quantity(35).build(),
+                                ProductInventory.builder().supermarketId("SM-003").quantity(15).build()
+                        ))
                         .available(true)
                         .createdAt(now)
                         .updatedAt(now)
@@ -64,10 +69,12 @@ public class DataSeeder implements CommandLineRunner {
                         .description("Soft and healthy whole wheat bread.")
                         .category("Bakery")
                         .brand("Daily Bake")
-                        .supermarketId("SM-002")
                         .imageUrl("https://example.com/images/whole-wheat-bread.jpg")
                         .price(new BigDecimal("220.00"))
-                        .quantity(0)
+                        .inventories(List.of(
+                                ProductInventory.builder().supermarketId("SM-002").quantity(0).build(),
+                                ProductInventory.builder().supermarketId("SM-004").quantity(0).build()
+                        ))
                         .available(false)
                         .createdAt(now)
                         .updatedAt(now)

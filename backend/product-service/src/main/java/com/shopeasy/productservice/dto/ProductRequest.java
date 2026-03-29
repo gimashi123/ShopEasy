@@ -1,11 +1,12 @@
 package com.shopeasy.productservice.dto;
 
 import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,6 +14,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * Request body used for create and update product operations.
@@ -41,9 +43,6 @@ public class ProductRequest {
     @Size(max = 80, message = "Brand must not exceed 80 characters")
     private String brand;
 
-    @NotBlank(message = "Supermarket id is required")
-    private String supermarketId;
-
     // Store the image as a URL/path instead of raw binary to keep the service simple.
     @Size(max = 500, message = "Image URL must not exceed 500 characters")
     @Pattern(
@@ -56,7 +55,7 @@ public class ProductRequest {
     @DecimalMin(value = "0.0", inclusive = false, message = "Price must be greater than 0")
     private BigDecimal price;
 
-    @NotNull(message = "Quantity is required")
-    @Min(value = 0, message = "Quantity must be 0 or greater")
-    private Integer quantity;
+    @Valid
+    @NotEmpty(message = "At least one supermarket inventory entry is required")
+    private List<ProductInventoryRequest> inventories;
 }

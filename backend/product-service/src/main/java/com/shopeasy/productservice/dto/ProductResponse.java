@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 
 /**
  * Response model returned to clients and other services.
@@ -23,10 +24,10 @@ public class ProductResponse {
     private String description;
     private String category;
     private String brand;
-    private String supermarketId;
     private String imageUrl;
     private BigDecimal price;
-    private Integer quantity;
+    private List<ProductInventoryResponse> inventories;
+    private Integer totalQuantity;
     private Boolean available;
     private Instant createdAt;
     private Instant updatedAt;

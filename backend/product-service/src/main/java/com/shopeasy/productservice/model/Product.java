@@ -11,6 +11,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 
 /**
  * MongoDB document for the product catalog.
@@ -34,10 +35,9 @@ public class Product {
     private String description;
     private String category;
     private String brand;
-    private String supermarketId;
     private String imageUrl;
     private BigDecimal price;
-    private Integer quantity;
+    private List<ProductInventory> inventories;
     private Boolean available;
     private Instant createdAt;
     private Instant updatedAt;
