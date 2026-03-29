@@ -114,6 +114,8 @@
 #        url: http://localhost:8088/v3/api-docs
 #      - name: Payment Service
 #        url: http://localhost:8087/v3/api-docs
+
+
 server:
   port: 8080
 
@@ -132,19 +134,11 @@ spring:
             allowedMethods: "*"
             allowedHeaders: "*"
             allowCredentials: true
-
       routes:
         - id: auth-service
-          uri: ${AUTH_SERVICE_URL:http://localhost:8084}
+          uri: ${AUTH_SERVICE_URL:http://localhost:8081}
           predicates:
             - Path=/api/auth/**
-          filters:
-            - StripPrefix=0
-
-        - id: customer-service
-          uri: ${CUSTOMER_SERVICE_URL:http://localhost:8088}
-          predicates:
-            - Path=/api/customers/**
           filters:
             - StripPrefix=0
 
@@ -169,13 +163,6 @@ spring:
           filters:
             - StripPrefix=0
 
-        - id: payment-service
-          uri: ${PAYMENT_SERVICE_URL:http://localhost:8087}
-          predicates:
-            - Path=/api/payments/**
-          filters:
-            - StripPrefix=0
-
         - id: promotion-service
           uri: ${PROMOTION_SERVICE_URL:http://localhost:8085}
           predicates:
@@ -183,10 +170,10 @@ spring:
           filters:
             - StripPrefix=0
 
-        - id: notification-service
-          uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8086}
+        - id: review-service
+          uri: ${REVIEW_SERVICE_URL:http://localhost:8086}
           predicates:
-            - Path=/api/notification/**
+            - Path=/api/reviews/**
           filters:
             - StripPrefix=0
 
@@ -214,13 +201,17 @@ logging:
 springdoc:
   swagger-ui:
     urls:
+      - name: Auth Service
+        url: http://localhost:8081/v3/api-docs
+      - name: Delivery Service
+        url: http://localhost:8082/v3/api-docs
       - name: Order Service
         url: http://localhost:8083/v3/api-docs
-      - name: Notification Service
-        url: http://localhost:8086/v3/api-docs
-      - name: Auth Service
+      - name: Product Service
         url: http://localhost:8084/v3/api-docs
-      - name: Customer Service
-        url: http://localhost:8088/v3/api-docs
-      - name: Payment Service
+      - name: Promotion Service
+        url: http://localhost:8085/v3/api-docs
+      - name: Review Service
+        url: http://localhost:8086/v3/api-docs
+      - name: Supermarket Service
         url: http://localhost:8087/v3/api-docs
