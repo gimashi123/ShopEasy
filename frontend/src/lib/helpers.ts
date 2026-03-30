@@ -5,23 +5,37 @@ type StatusVariant = NonNullable<BadgeProps["variant"]>;
 
 export function getOrderStatusVariant(status: string): StatusVariant {
   switch (status) {
-    case "PENDING": return "pending";
+    case "PENDING":
+      return "pending";
     case "PICKED_UP":
-    case "WASHING": return "active";
-    case "READY": return "ready";
-    case "DELIVERED": return "success";
-    case "CANCELLED": return "cancelled";
-    default: return "secondary";
+    case "WASHING":
+    case "CONFIRMED":
+    case "PROCESSING":
+      return "active";
+    case "READY":
+    case "DISPATCHED":
+      return "ready";
+    case "DELIVERED":
+      return "success";
+    case "CANCELLED":
+      return "cancelled";
+    default:
+      return "secondary";
   }
 }
 
 export function getPaymentStatusVariant(status: string): StatusVariant {
   switch (status) {
-    case "PENDING": return "pending";
-    case "COMPLETED": return "success";
-    case "FAILED": return "cancelled";
-    case "REFUNDED": return "active";
-    default: return "secondary";
+    case "PENDING":
+      return "pending";
+    case "COMPLETED":
+      return "success";
+    case "FAILED":
+      return "cancelled";
+    case "REFUNDED":
+      return "active";
+    default:
+      return "secondary";
   }
 }
 
@@ -32,13 +46,19 @@ export function getNextOrderStatus(current: string): string | null {
 }
 
 export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("en-LK", { style: "currency", currency: "LKR", minimumFractionDigits: 2 }).format(amount);
+  return new Intl.NumberFormat("en-LK", {
+    style: "currency",
+    currency: "LKR",
+    minimumFractionDigits: 2,
+  }).format(amount);
 }
 
 export function formatDate(dateStr: string): string {
   if (!dateStr) return "—";
   return new Intl.DateTimeFormat("en-US", {
-    year: "numeric", month: "short", day: "numeric",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
   }).format(new Date(dateStr));
 }
 

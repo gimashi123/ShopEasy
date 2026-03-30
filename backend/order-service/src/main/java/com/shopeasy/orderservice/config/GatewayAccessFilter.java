@@ -22,6 +22,9 @@ public class GatewayAccessFilter extends OncePerRequestFilter {
     @Value("${security.gateway.header-value:change-me-order-key}")
     private String gatewayHeaderValue;
 
+    @Value("${security.gateway.allow-swagger-direct-access:true}")
+    private boolean allowSwaggerDirectAccess;
+
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
@@ -32,7 +35,7 @@ public class GatewayAccessFilter extends OncePerRequestFilter {
     protected void doFilterInternal(
             HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        if (!gatewayHeaderValidationEnabled) {
+        if (!gatewayHeaderValidationEnabled || isSwaggerUiRequest(request)) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -46,5 +49,18 @@ public class GatewayAccessFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private boolean isSwaggerUiRequest(HttpServletRequest request) {
+        if (!allowSwaggerDirectAccess) {
+            return false;
+        }
+
+        String referer = request.getHeader("Referer");
+        if (referer == null) {
+            return false;
+        }
+
+        return referer.contains("/swagger-ui") || referer.contains("/swagger-ui.html");
     }
 }

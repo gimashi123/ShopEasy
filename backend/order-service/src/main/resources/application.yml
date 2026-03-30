@@ -38,5 +38,6 @@ services:
 security:
   gateway:
     enabled: ${GATEWAY_HEADER_VALIDATION_ENABLED:true}
+    allow-swagger-direct-access: ${GATEWAY_ALLOW_SWAGGER_DIRECT_ACCESS:true}
     header-name: ${GATEWAY_HEADER_NAME:X-Gateway-Key}
     header-value: ${GATEWAY_SHARED_KEY:change-me-order-key}
