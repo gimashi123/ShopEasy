@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Navigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -6,11 +7,18 @@ import { productService, type Product } from "@/services/productService";
 import { ProductGrid } from "@/components/products/ProductGrid";
 import { Search } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function ProductsPage() {
+  const { user } = useAuth();
+  const isAdmin = user?.roles?.some((role) => role.includes("ROLE_ADMIN"));
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+
+  if (isAdmin) {
+    return <Navigate to="/admin/products" replace />;
+  }
 
   useEffect(() => {
     productService

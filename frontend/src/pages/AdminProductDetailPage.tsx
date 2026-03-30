@@ -34,7 +34,6 @@ export default function AdminProductDetailPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [imageFile, setImageFile] = useState<File | null>(null);
   const [form, setForm] = useState<ProductFormState>({
     sku: "",
     name: "",
@@ -96,7 +95,6 @@ export default function AdminProductDetailPage() {
           }))
         : [{ supermarketId: "", quantity: 0 }],
     });
-    setImageFile(null);
     setErrors({});
     setDialogOpen(true);
   };
@@ -137,12 +135,9 @@ export default function AdminProductDetailPage() {
 
     setSaving(true);
     try {
-      const updated = imageFile
-        ? await productService.updateWithImage(id, payload, imageFile)
-        : await productService.update(id, payload);
+      const updated = await productService.update(id, payload);
       setProduct(updated);
       setDialogOpen(false);
-      setImageFile(null);
       toast.success("Product updated successfully");
     } catch (error: any) {
       toast.error(error?.response?.data?.message || "Failed to update product");
@@ -275,9 +270,7 @@ export default function AdminProductDetailPage() {
         form={form}
         supermarkets={supermarkets}
         errors={errors}
-        imageFile={imageFile}
         onFormChange={setForm}
-        onImageFileChange={setImageFile}
         onSave={handleUpdate}
       />
 

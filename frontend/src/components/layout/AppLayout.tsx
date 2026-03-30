@@ -34,7 +34,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     { name: "Offers", href: "/offers", icon: MessageSquare },
     { name: "Preferences", href: "/preferences", icon: Settings },
     { name: "Supermarkets", href: "/supermarkets", icon: Store },
-    { name: "Products", href: "/products", icon: Package },
+    ...(!isAdmin ? [{ name: "Products", href: "/products", icon: Package }] : []),
     ...(isAdmin ? [{ name: "Manage Products", href: "/admin/products", icon: Package }] : []),
   ];
 

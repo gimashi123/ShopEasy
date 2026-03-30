@@ -12,16 +12,13 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -39,19 +36,6 @@ public class ProductController {
     public ResponseEntity<ApiResponse<ProductResponse>> createProduct(
             @Valid @RequestBody ProductRequest request) {
         ProductResponse createdProduct = productService.createProduct(request);
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Product created successfully", createdProduct));
-    }
-
-    /**
-     * Multipart endpoint kept separate so Swagger doesn't confuse it with the JSON create endpoint.
-     */
-    @PostMapping(value = "/with-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponse<ProductResponse>> createProductWithImage(
-            @Valid @ModelAttribute ProductRequest request,
-            @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) {
-        ProductResponse createdProduct = productService.createProduct(request, imageFile);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Product created successfully", createdProduct));
@@ -107,19 +91,6 @@ public class ProductController {
             @Valid @RequestBody ProductRequest request) {
         return ResponseEntity.ok(
                 ApiResponse.success("Product updated successfully", productService.updateProduct(id, request)));
-    }
-
-    /**
-     * Multipart endpoint kept separate so Swagger doesn't confuse it with the JSON update endpoint.
-     */
-    @PutMapping(value = "/{id}/with-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponse<ProductResponse>> updateProductWithImage(
-            @PathVariable String id,
-            @Valid @ModelAttribute ProductRequest request,
-            @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) {
-        return ResponseEntity.ok(
-                ApiResponse.success("Product updated successfully",
-                        productService.updateProduct(id, request, imageFile)));
     }
 
     /**
