@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   Menu, X, LayoutDashboard, ShoppingBag,
   MapPin, User, LogOut, Settings, ChevronUp,
-  ChevronRight, MessageSquare, Gift, ShoppingBasket, Store
+  MessageSquare, Gift, ShoppingBasket, Store, Package
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -23,6 +23,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const { user, logout } = useAuth();
+  const isAdmin = user?.roles?.some((r) => r.includes("ROLE_ADMIN"));
 
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -33,6 +34,8 @@ export function AppLayout({ children }: AppLayoutProps) {
     { name: "Offers", href: "/offers", icon: MessageSquare },
     { name: "Preferences", href: "/preferences", icon: Settings },
     { name: "Supermarkets", href: "/supermarkets", icon: Store },
+    { name: "Products", href: "/products", icon: Package },
+    ...(isAdmin ? [{ name: "Manage Products", href: "/admin/products", icon: Package }] : []),
   ];
 
   return (
@@ -66,7 +69,10 @@ export function AppLayout({ children }: AppLayoutProps) {
 
         <nav className="flex-1 px-4 space-y-2 mt-20 lg:mt-0 overflow-y-auto">
           {navigation.map((item) => {
-            const isActive = location.pathname === item.href;
+            const isActive =
+              location.pathname === item.href ||
+              (item.href === "/admin/products" && location.pathname.startsWith("/admin/products")) ||
+              (item.href === "/products" && location.pathname.startsWith("/products"));
             const Icon = item.icon;
 
             return (
@@ -88,7 +94,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             );
           })}
 
-          {user?.roles?.some(r => r.includes("ROLE_ADMIN")) && (
+          {isAdmin && (
             <Link
               to="/admin/settings"
               onClick={() => setIsMobileMenuOpen(false)}
