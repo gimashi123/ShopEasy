@@ -21,12 +21,22 @@
         <module>common</module>
         <module>grpc-lib</module>
         <module>auth-service</module>
+        <module>order-service</module>
+        <module>product-service</module>
         <module>gateway</module>
         <module>delivery-service</module>
+
+        <module>notification-service</module>
+        <module>supermarket-service</module>
+
+
+        <module>promotion-service</module>
+        <module>review-service</module>
+
     </modules>
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>17</java.version>
         <spring-cloud.version>2023.0.0</spring-cloud.version>
         <lombok.version>1.18.30</lombok.version>
         <grpc.version>1.62.2</grpc.version>
@@ -65,6 +75,11 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <dependency>
+    <groupId>org.springdoc</groupId>
+    <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+    <version>2.5.0</version>
+</dependency>
         </dependencies>
     </dependencyManagement>
 

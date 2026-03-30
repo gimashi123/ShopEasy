@@ -19,8 +19,11 @@ import AdminSettingsPage from "@/pages/AdminSettingsPage";
 import NotFound from "@/pages/NotFound";
 import AddressesPage from "@/pages/AddressesPage.tsx";
 import LoyaltyPage from "@/pages/LoyaltyPage.tsx";
-import FeedbackPage from "@/pages/FeedbackPage.tsx";
 import PreferencesPage from "@/pages/PreferencesPage.tsx";
+import Index from "@/pages/Index";
+import OffersPage from "@/pages/OffersPage";
+import SupermarketsPage from "@/pages/SupermarketsPage";
+import SupermarketDetailPage from "@/pages/SupermarketDetailPage";
 
 const queryClient = new QueryClient();
 
@@ -32,22 +35,25 @@ const App = () => (
       <AuthProvider>
         <BrowserRouter>
           <Routes>
+            <Route path="/" element={<Index />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route element={<ProtectedRoute />}>
-              <Route path="/" element={<DashboardPage />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/orders" element={<OrdersPage />} />
               <Route path="/orders/create" element={<CreateOrderPage />} />
               <Route path="/orders/:id" element={<OrderDetailPage />} />
               <Route path="/profile" element={<CustomerProfilePage />} />
               <Route path="/addresses" element={<AddressesPage />} />
-              <Route path="/feedback" element={<FeedbackPage />} />
+              <Route path="/offers" element={<OffersPage />} />
               <Route path="/loyalty" element={<LoyaltyPage />} />
               <Route path="/preferences" element={<PreferencesPage />} />
               <Route path="/payments" element={<PaymentsPage />} />
               <Route path="/payments/create" element={<MakePaymentPage />} />
               <Route path="/payments/:id" element={<PaymentDetailPage />} />
               <Route path="/admin/settings" element={<AdminSettingsPage />} />
+              <Route path="/supermarkets" element={<SupermarketsPage />} />
+              <Route path="/supermarkets/:id" element={<SupermarketDetailPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Droplets } from "lucide-react";
+import { ShoppingBasket } from "lucide-react";
 
 export default function RegisterPage() {
   const [username, setUsername] = useState("");
@@ -29,7 +29,7 @@ export default function RegisterPage() {
       if (res.success) {
         login(res.data);
         toast.success(res.message || "Registered successfully");
-        navigate("/");
+        navigate("/dashboard");
       } else {
         toast.error(res.message || "Registration failed");
       }
@@ -45,10 +45,10 @@ export default function RegisterPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-            <Droplets className="h-6 w-6 text-primary" />
+            <ShoppingBasket className="h-6 w-6 text-primary" />
           </div>
           <CardTitle className="text-2xl font-bold tracking-tight">Create Account</CardTitle>
-          <CardDescription>Start managing your laundry orders</CardDescription>
+          <CardDescription>Start managing your grocery orders</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
