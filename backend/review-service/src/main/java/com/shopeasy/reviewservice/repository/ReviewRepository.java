@@ -12,14 +12,15 @@ import java.util.List;
 @Repository
 public interface ReviewRepository extends MongoRepository<Review, String> {
 
-    // 1. A standard custom method to find all reviews made by a single user.
+    // 1. Find reviews by user
     List<Review> findByUserId(String userId);
 
-    // 2. The most critical custom method for a product page.
-    // It fetches all reviews for an item, sorted so new ones appear first.
+    // 2. Find reviews by product (latest first)
     List<Review> findByProductIdOrderByCreatedAtDesc(String productId);
 
-    // 3. A more advanced professional query. It counts all reviews with a 5-star rating,
-    // which is needed for displaying a summary like "85% five-star reviews".
+    // 3. Count 5-star reviews
     long countByProductIdAndRating(String productId, int rating);
+
+    // 🔥 ADD THIS METHOD (IMPORTANT)
+    boolean existsByUserIdAndProductId(String userId, String productId);
 }

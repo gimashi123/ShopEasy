@@ -169,12 +169,12 @@ spring:
           filters:
             - StripPrefix=0
 
-        - id: payment-service
-          uri: ${PAYMENT_SERVICE_URL:http://localhost:8087}
-          predicates:
-            - Path=/api/payments/**
-          filters:
-            - StripPrefix=0
+#        - id: payment-service
+#          uri: ${PAYMENT_SERVICE_URL:http://localhost:8087}
+#          predicates:
+#            - Path=/api/payments/**
+#          filters:
+#            - StripPrefix=0
 
         - id: promotion-service
           uri: ${PROMOTION_SERVICE_URL:http://localhost:8085}
@@ -190,12 +190,12 @@ spring:
           filters:
             - StripPrefix=0
 
-        - id: supermarket-service
-          uri: ${SUPERMARKET_SERVICE_URL:http://localhost:8087}
-          predicates:
-            - Path=/api/supermarket/**
-          filters:
-            - StripPrefix=0
+#        - id: supermarket-service
+#          uri: ${SUPERMARKET_SERVICE_URL:http://localhost:8087}
+#          predicates:
+#            - Path=/api/supermarket/**
+#          filters:
+#            - StripPrefix=0
 
 management:
   endpoints:
