@@ -89,3 +89,29 @@ export const SERVICE_TYPES = ["WASH", "DRY_CLEAN", "IRON", "WASH_AND_FOLD"] as c
 export const ITEM_TYPES = ["SHIRT", "TROUSER", "JACKET", "BED_SHEET"] as const;
 export const PAYMENT_METHODS = ["CREDIT_CARD", "DEBIT_CARD", "CASH_ON_DELIVERY"] as const;
 export const PAYMENT_STATUSES = ["PENDING", "COMPLETED", "FAILED", "REFUNDED"] as const;
+
+export interface Driver {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+  vehicleType: string;
+  vehicleNumber: string;
+  available: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DeliveryTask {
+  id: string;
+  orderId: string;
+  driverId?: string;
+  status: 'PENDING' | 'ACCEPTED' | 'IN_TRANSIT' | 'DELIVERED' | 'CANCELLED';
+  rejectedByDriverIds: string[];
+  deliveryAddress: string;
+  acceptedAt?: string;
+  deliveredAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
