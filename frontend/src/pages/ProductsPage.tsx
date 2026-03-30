@@ -20,12 +20,22 @@ export default function ProductsPage() {
     return <Navigate to="/admin/products" replace />;
   }
 
-  useEffect(() => {
+  const loadProducts = () => {
     productService
       .getAll()
       .then(setProducts)
       .catch(() => toast.error("Failed to load products"))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadProducts();
+  }, []);
+
+  useEffect(() => {
+    // Poll product list so stock/availability cards reflect recent orders from any user.
+    const intervalId = window.setInterval(loadProducts, 15000);
+    return () => window.clearInterval(intervalId);
   }, []);
 
   const filteredProducts = useMemo(() => {

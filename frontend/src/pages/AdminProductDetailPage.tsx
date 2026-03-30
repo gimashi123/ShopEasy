@@ -182,6 +182,8 @@ export default function AdminProductDetailPage() {
     );
   }
 
+  const stockStatus = product.stockStatus || (product.available ? "IN_STOCK" : "OUT_OF_STOCK");
+
   return (
     <>
       <div className="space-y-6">
@@ -193,8 +195,20 @@ export default function AdminProductDetailPage() {
               </Link>
             </Button>
             <h1 className="text-2xl font-bold">{product.name}</h1>
-            <Badge variant={product.available ? "default" : "secondary"}>
-              {product.available ? "Available" : "Out of stock"}
+            <Badge
+              variant={
+                stockStatus === "LOW_STOCK"
+                  ? "pending"
+                  : stockStatus === "OUT_OF_STOCK"
+                    ? "secondary"
+                    : "default"
+              }
+            >
+              {stockStatus === "LOW_STOCK"
+                ? "Low stock"
+                : stockStatus === "OUT_OF_STOCK"
+                  ? "Out of stock"
+                  : "In stock"}
             </Badge>
           </div>
           <div className="flex gap-2">

@@ -29,6 +29,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ProductService {
 
+    private static final int LOW_STOCK_THRESHOLD = 5;
+
     private final ProductRepository productRepository;
 
     public ProductResponse createProduct(ProductRequest request) {
@@ -160,6 +162,7 @@ public class ProductService {
     }
 
     private ProductResponse mapToResponse(Product product) {
+        int totalQuantity = calculateTotalQuantity(product.getInventories());
         return ProductResponse.builder()
                 .id(product.getId())
                 .sku(product.getSku())
@@ -170,8 +173,10 @@ public class ProductService {
                 .imageUrl(product.getImageUrl())
                 .price(product.getPrice())
                 .inventories(mapInventoryResponses(product.getInventories()))
-                .totalQuantity(calculateTotalQuantity(product.getInventories()))
+                .totalQuantity(totalQuantity)
                 .available(product.getAvailable())
+                .lowStock(isLowStock(totalQuantity))
+                .stockStatus(resolveStockStatus(totalQuantity))
                 .createdAt(product.getCreatedAt())
                 .updatedAt(product.getUpdatedAt())
                 .build();
@@ -211,6 +216,20 @@ public class ProductService {
         return inventories.stream()
                 .mapToInt(ProductInventory::getQuantity)
                 .sum();
+    }
+
+    private boolean isLowStock(int totalQuantity) {
+        return totalQuantity > 0 && totalQuantity <= LOW_STOCK_THRESHOLD;
+    }
+
+    private String resolveStockStatus(int totalQuantity) {
+        if (totalQuantity <= 0) {
+            return "OUT_OF_STOCK";
+        }
+        if (totalQuantity <= LOW_STOCK_THRESHOLD) {
+            return "LOW_STOCK";
+        }
+        return "IN_STOCK";
     }
 
     private String normalizeImageUrl(String imageUrl) {

@@ -18,6 +18,8 @@ export interface Product {
   inventories: ProductInventory[];
   totalQuantity: number;
   available: boolean;
+  lowStock?: boolean;
+  stockStatus?: "IN_STOCK" | "LOW_STOCK" | "OUT_OF_STOCK";
   createdAt: string;
   updatedAt: string;
 }

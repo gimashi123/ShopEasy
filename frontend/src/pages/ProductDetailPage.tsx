@@ -1,22 +1,32 @@
-import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { productService, type Product } from "@/services/productService";
 import { supermarketService, type Supermarket } from "@/services/supermarketService";
+import { orderService } from "@/services/orderService";
 import { resolveProductImageUrl } from "@/lib/productImage";
 import { ArrowLeft, Package } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function ProductDetailPage() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const [product, setProduct] = useState<Product | null>(null);
   const [supermarkets, setSupermarkets] = useState<Supermarket[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedSupermarketId, setSelectedSupermarketId] = useState("");
+  const [orderQuantity, setOrderQuantity] = useState(1);
+  const [ordering, setOrdering] = useState(false);
 
-  useEffect(() => {
+  const loadProductData = () => {
     if (!id) return;
 
     // We load both resources so inventory rows can show supermarket names instead of raw IDs.
@@ -28,7 +38,36 @@ export default function ProductDetailPage() {
         if (marketResult.status === "fulfilled") setSupermarkets(marketResult.value);
       })
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadProductData();
   }, [id]);
+
+  useEffect(() => {
+    // Lightweight polling keeps customer stock numbers fresh after concurrent orders.
+    const intervalId = window.setInterval(loadProductData, 15000);
+    return () => window.clearInterval(intervalId);
+  }, [id]);
+
+  const isAdmin = user?.roles?.some((role) => role.includes("ROLE_ADMIN"));
+  const availableInventories = useMemo(
+    () => (product?.inventories || []).filter((inventory) => inventory.quantity > 0),
+    [product?.inventories]
+  );
+  const selectedInventory = availableInventories.find((inventory) => inventory.supermarketId === selectedSupermarketId);
+  const maxAvailableForSelection = selectedInventory?.quantity || 0;
+  const canOrder = !isAdmin && availableInventories.length > 0;
+
+  useEffect(() => {
+    if (!selectedSupermarketId && availableInventories.length > 0) {
+      setSelectedSupermarketId(availableInventories[0].supermarketId);
+    }
+    if (!availableInventories.length) {
+      setSelectedSupermarketId("");
+      setOrderQuantity(1);
+    }
+  }, [availableInventories, selectedSupermarketId]);
 
   if (loading) {
     return (
@@ -51,6 +90,54 @@ export default function ProductDetailPage() {
   }
 
   const imageSrc = resolveProductImageUrl(product.imageUrl);
+  const stockStatus = product.stockStatus || (product.available ? "IN_STOCK" : "OUT_OF_STOCK");
+
+  const placeOrder = async () => {
+    if (!user?.id) {
+      toast.error("Please login to place an order");
+      return;
+    }
+    if (!selectedSupermarketId) {
+      toast.error("Please select a supermarket");
+      return;
+    }
+    if (orderQuantity < 1) {
+      toast.error("Quantity must be at least 1");
+      return;
+    }
+    if (orderQuantity > maxAvailableForSelection) {
+      toast.error(`Only ${maxAvailableForSelection} item(s) available in selected supermarket`);
+      return;
+    }
+
+    setOrdering(true);
+    try {
+      // Direct product checkout uses the real productId + supermarketId so stock reductions are accurate.
+      const createdOrder = await orderService.createOrder(user.id, "PREMIUM", {
+        supermarketId: selectedSupermarketId,
+        productId: product.id,
+        isExpress: false,
+        isDryClean: false,
+        totalPrice: Number(product.price) * orderQuantity,
+        items: [
+          {
+            productId: product.id,
+            name: product.name,
+            quantity: orderQuantity,
+            unitPrice: Number(product.price),
+          },
+        ],
+      });
+
+      toast.success("Order placed successfully");
+      loadProductData();
+      navigate(`/orders/${createdOrder.id}`);
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to place order");
+    } finally {
+      setOrdering(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -92,8 +179,20 @@ export default function ProductDetailPage() {
             <p><span className="font-medium">Total Stock:</span> {product.totalQuantity ?? 0}</p>
             <p><span className="font-medium">Description:</span> {product.description || "-"}</p>
             <div>
-              <Badge variant={product.available ? "default" : "secondary"}>
-                {product.available ? "Available" : "Out of stock"}
+              <Badge
+                variant={
+                  stockStatus === "LOW_STOCK"
+                    ? "pending"
+                    : stockStatus === "OUT_OF_STOCK"
+                      ? "secondary"
+                      : "default"
+                }
+              >
+                {stockStatus === "LOW_STOCK"
+                  ? "Low stock"
+                  : stockStatus === "OUT_OF_STOCK"
+                    ? "Out of stock"
+                    : "In stock"}
               </Badge>
             </div>
           </CardContent>
@@ -123,6 +222,62 @@ export default function ProductDetailPage() {
           )}
         </CardContent>
       </Card>
+
+      {!isAdmin && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Order This Product</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {canOrder ? (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label>Select Supermarket</Label>
+                    <Select value={selectedSupermarketId} onValueChange={setSelectedSupermarketId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select supermarket" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableInventories.map((inventory) => {
+                          const market = supermarkets.find((item) => item.id === inventory.supermarketId);
+                          return (
+                            <SelectItem key={inventory.supermarketId} value={inventory.supermarketId}>
+                              {(market?.name || inventory.supermarketId) + ` (Available: ${inventory.quantity})`}
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label>Quantity</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max={maxAvailableForSelection || 1}
+                      value={orderQuantity}
+                      onChange={(e) => setOrderQuantity(Math.max(1, Number(e.target.value) || 1))}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <p className="text-sm text-muted-foreground">
+                    Total: LKR {(Number(product.price) * orderQuantity).toFixed(2)}
+                  </p>
+                  <Button onClick={placeOrder} disabled={ordering || !selectedSupermarketId}>
+                    {ordering ? "Placing order..." : "Place Order"}
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">This product is currently out of stock in all supermarkets.</p>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
