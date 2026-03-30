@@ -2,6 +2,7 @@ package com.shopeasy.orderservice.model;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,11 +22,10 @@ public class Order {
     private String id;
 
     private String customerId;
-    private String productId;
+    private String address;
     private String supermarketId;
 
-    private Integer quantity;
-    private BigDecimal unitPrice;
+    private List<OrderItem> items;
     private BigDecimal discountAmount;
     private BigDecimal totalAmount;
     private BigDecimal deliveryCharge;
