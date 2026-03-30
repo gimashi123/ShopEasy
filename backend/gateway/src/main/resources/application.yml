@@ -163,7 +163,7 @@ spring:
 
 
         - id: supermarket-service
-          uri: ${SUPERMARKET_SERVICE_URL:http://localhost:8087}
+          uri: ${SUPERMARKET_SERVICE_URL:http://localhost:8089}
           predicates:
             - Path=/api/supermarkets/**
           filters:
@@ -227,4 +227,4 @@ springdoc:
       - name: Review Service
         url: http://localhost:8086/v3/api-docs
       - name: Supermarket Service
-        url: http://localhost:8087/v3/api-docs
+        url: http://localhost:8089/v3/api-docs

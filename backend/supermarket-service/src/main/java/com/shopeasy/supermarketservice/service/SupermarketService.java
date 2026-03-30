@@ -16,14 +16,17 @@ import java.util.List;
 public class SupermarketService {
 
     private final SupermarketRepository supermarketRepository;
+    private final SequenceGeneratorService sequenceGeneratorService;
 
     public SupermarketResponse create(SupermarketRequest request) {
         Supermarket supermarket = Supermarket.builder()
+                .id(sequenceGeneratorService.generateSupermarketId())
                 .name(request.getName())
                 .address(request.getAddress())
                 .phone(request.getPhone())
                 .email(request.getEmail())
                 .openingHours(request.getOpeningHours())
+                .mapLink(request.getMapLink())
                 .location(mapLocation(request.getLocation()))
                 .build();
 
@@ -49,6 +52,7 @@ public class SupermarketService {
         supermarket.setPhone(request.getPhone());
         supermarket.setEmail(request.getEmail());
         supermarket.setOpeningHours(request.getOpeningHours());
+        supermarket.setMapLink(request.getMapLink());
         supermarket.setLocation(mapLocation(request.getLocation()));
         supermarket.setUpdatedAt(Instant.now());
 

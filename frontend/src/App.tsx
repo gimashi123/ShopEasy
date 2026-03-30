@@ -22,6 +22,8 @@ import LoyaltyPage from "@/pages/LoyaltyPage.tsx";
 import PreferencesPage from "@/pages/PreferencesPage.tsx";
 import Index from "@/pages/Index";
 import OffersPage from "@/pages/OffersPage";
+import SupermarketsPage from "@/pages/SupermarketsPage";
+import SupermarketDetailPage from "@/pages/SupermarketDetailPage";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +52,8 @@ const App = () => (
               <Route path="/payments/create" element={<MakePaymentPage />} />
               <Route path="/payments/:id" element={<PaymentDetailPage />} />
               <Route path="/admin/settings" element={<AdminSettingsPage />} />
+              <Route path="/supermarkets" element={<SupermarketsPage />} />
+              <Route path="/supermarkets/:id" element={<SupermarketDetailPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
