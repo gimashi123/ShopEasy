@@ -24,6 +24,9 @@ import Index from "@/pages/Index";
 import OffersPage from "@/pages/OffersPage";
 import SupermarketsPage from "@/pages/SupermarketsPage";
 import SupermarketDetailPage from "@/pages/SupermarketDetailPage";
+import AdminDriversPage from "@/pages/AdminDriversPage";
+import AdminTasksPage from "@/pages/AdminTasksPage";
+import DriverDashboardPage from "@/pages/DriverDashboardPage";
 
 const queryClient = new QueryClient();
 
@@ -52,8 +55,11 @@ const App = () => (
               <Route path="/payments/create" element={<MakePaymentPage />} />
               <Route path="/payments/:id" element={<PaymentDetailPage />} />
               <Route path="/admin/settings" element={<AdminSettingsPage />} />
+              <Route path="/admin/drivers" element={<AdminDriversPage />} />
+              <Route path="/admin/tasks" element={<AdminTasksPage />} />
               <Route path="/supermarkets" element={<SupermarketsPage />} />
               <Route path="/supermarkets/:id" element={<SupermarketDetailPage />} />
+              <Route path="/driver/dashboard" element={<DriverDashboardPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -17,7 +17,7 @@ public class DriverResponse {
     private String phone;
     private String email;
     private String vehicleType;
-    private String licenseNumber;
+    private String vehicleNumber;
     private boolean available;
     private Instant createdAt;
     private Instant updatedAt;

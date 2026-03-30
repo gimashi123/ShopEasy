@@ -28,7 +28,14 @@ export default function LoginPage() {
       if (res.success) {
         login(res.data);
         toast.success(res.message || "Logged in successfully");
-        navigate("/dashboard");
+        
+        if (res.data?.roles?.includes("ROLE_ADMIN")) {
+          navigate("/admin/tasks");
+        } else if (res.data?.roles?.includes("ROLE_DRIVER")) {
+          navigate("/driver/dashboard");
+        } else {
+          navigate("/dashboard");
+        }
       } else {
         toast.error(res.message || "Login failed");
       }

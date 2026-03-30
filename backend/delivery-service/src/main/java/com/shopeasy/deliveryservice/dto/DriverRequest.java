@@ -25,6 +25,6 @@ public class DriverRequest {
     @NotBlank(message = "Vehicle type is required")
     private String vehicleType;
 
-    @NotBlank(message = "License number is required")
-    private String licenseNumber;
+    @NotBlank(message = "Vehicle number is required")
+    private String vehicleNumber;
 }

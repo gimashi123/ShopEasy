@@ -28,7 +28,7 @@ public class Driver {
     private String email;
 
     private String vehicleType;
-    private String licenseNumber;
+    private String vehicleNumber;
 
     @Builder.Default
     private boolean available = true;

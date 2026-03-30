@@ -7,6 +7,7 @@ import com.shopeasy.deliveryservice.repository.DriverRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,7 +22,8 @@ public class DriverService {
                 .phone(request.getPhone())
                 .email(request.getEmail())
                 .vehicleType(request.getVehicleType())
-                .licenseNumber(request.getLicenseNumber())
+                .vehicleNumber(request.getVehicleNumber())
+                .available(true)
                 .build();
         return mapToResponse(driverRepository.save(driver));
     }
@@ -51,9 +53,10 @@ public class DriverService {
         driver.setName(request.getName());
         driver.setPhone(request.getPhone());
         driver.setEmail(request.getEmail());
-        driver.setVehicleType(request.getVehicleType());
-        driver.setLicenseNumber(request.getLicenseNumber());
+        if (request.getVehicleType() != null) driver.setVehicleType(request.getVehicleType());
+        if (request.getVehicleNumber() != null) driver.setVehicleNumber(request.getVehicleNumber());
         
+        driver.setUpdatedAt(Instant.now());
         return mapToResponse(driverRepository.save(driver));
     }
 
@@ -68,7 +71,7 @@ public class DriverService {
                 .phone(driver.getPhone())
                 .email(driver.getEmail())
                 .vehicleType(driver.getVehicleType())
-                .licenseNumber(driver.getLicenseNumber())
+                .vehicleNumber(driver.getVehicleNumber())
                 .available(driver.isAvailable())
                 .createdAt(driver.getCreatedAt())
                 .updatedAt(driver.getUpdatedAt())
