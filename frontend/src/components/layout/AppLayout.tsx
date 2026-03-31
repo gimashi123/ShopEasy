@@ -138,6 +138,20 @@ export function AppLayout({ children }: AppLayoutProps) {
                 <ShoppingBag size={18} />
                 Delivery Tasks
               </Link>
+              <Link
+                to="/admin/orders"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`
+                  flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors
+                  ${location.pathname === "/admin/orders"
+                    ? "bg-white/20 text-white"
+                    : "text-yellow-400 hover:bg-white/10 hover:text-yellow-300"
+                  }
+                `}
+              >
+                <ShoppingBag size={18} />
+                Manage Orders
+              </Link>
             </div>
           )}
 

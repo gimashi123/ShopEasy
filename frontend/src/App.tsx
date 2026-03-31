@@ -32,6 +32,7 @@ import ProductsPage from "@/pages/ProductsPage";
 import ProductDetailPage from "@/pages/ProductDetailPage";
 import AdminDriversPage from "@/pages/AdminDriversPage";
 import AdminTasksPage from "@/pages/AdminTasksPage";
+import AdminOrderPage from "@/pages/AdminOrderPage";
 import DriverDashboardPage from "@/pages/DriverDashboardPage";
 
 const queryClient = new QueryClient();
@@ -71,6 +72,7 @@ const App = () => (
               <Route path="/products/:id" element={<ProductDetailPage />} />
               <Route path="/admin/drivers" element={<AdminDriversPage />} />
               <Route path="/admin/tasks" element={<AdminTasksPage />} />
+              <Route path="/admin/orders" element={<AdminOrderPage />} />
               <Route path="/supermarkets" element={<SupermarketsPage />} />
               <Route path="/supermarkets/:id" element={<SupermarketDetailPage />} />
               <Route path="/driver/dashboard" element={<DriverDashboardPage />} />

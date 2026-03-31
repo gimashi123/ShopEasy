@@ -25,6 +25,8 @@ export default function OrderDetailPage() {
   const [payment, setPayment] = useState<Payment | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
+  const isAdmin = Boolean(user?.roles?.includes("ROLE_ADMIN"));
+  const ordersListPath = isAdmin ? "/admin/orders" : "/orders";
 
   useEffect(() => {
     if (!id) return;
@@ -116,7 +118,7 @@ export default function OrderDetailPage() {
     return (
       <div className="text-center py-12">
         <p className="text-muted-foreground">Order not found</p>
-        <Button variant="ghost" asChild className="mt-2"><Link to="/orders">Back to Orders</Link></Button>
+        <Button variant="ghost" asChild className="mt-2"><Link to={ordersListPath}>Back to Orders</Link></Button>
       </div>
     );
   }
@@ -126,7 +128,6 @@ export default function OrderDetailPage() {
   const isDelivered = order.status === "DELIVERED";
   const isPending = order.status === "PENDING";
   const paymentCompleted = payment?.status === "COMPLETED";
-  const isAdmin = Boolean(user?.roles?.includes("ROLE_ADMIN"));
   const isOwner = Boolean(user?.id && user.id === order.customerId);
   const canManagePendingOrder = isPending && isOwner;
   const canAdminCancelUnpaid = isAdmin && isPending && !paymentCompleted;
@@ -134,7 +135,7 @@ export default function OrderDetailPage() {
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       <div className="flex items-center gap-3 border-b pb-4">
-        <Button variant="ghost" size="icon" asChild><Link to="/orders"><ArrowLeft className="h-5 w-5" /></Link></Button>
+        <Button variant="ghost" size="icon" asChild><Link to={ordersListPath}><ArrowLeft className="h-5 w-5" /></Link></Button>
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
             Order #{order.id} 
