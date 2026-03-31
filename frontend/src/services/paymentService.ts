@@ -12,9 +12,20 @@ export const paymentService = {
     const res = await api.get(`/payments/${id}`);
     return unwrap(res);
   },
-  getByOrder: async (orderId: number): Promise<Payment> => {
-    const res = await api.get(`/payments/order/${orderId}`);
-    return unwrap(res);
+  getByOrder: async (orderId: string | number): Promise<Payment | null> => {
+    try {
+      const res = await api.get(`/payments/order/${orderId}`);
+      const data = unwrap(res);
+      if (Array.isArray(data)) {
+        return data[0] ?? null;
+      }
+      return data ?? null;
+    } catch (error: any) {
+      if (error?.response?.status === 404) {
+        return null;
+      }
+      throw error;
+    }
   },
   getByCustomer: async (customerId: string): Promise<Payment[]> => {
     const res = await api.get(`/payments/customer/${customerId}`);

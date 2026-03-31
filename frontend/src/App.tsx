@@ -11,6 +11,7 @@ import DashboardPage from "@/pages/DashboardPage";
 import OrdersPage from "@/pages/OrdersPage";
 import OrderDetailPage from "@/pages/OrderDetailPage";
 import CreateOrderPage from "@/pages/CreateOrderPage";
+import UpdateOrderPage from "@/pages/UpdateOrderPage";
 import PaymentsPage from "@/pages/PaymentsPage";
 import MakePaymentPage from "@/pages/MakePaymentPage";
 import PaymentDetailPage from "@/pages/PaymentDetailPage";
@@ -50,6 +51,7 @@ const App = () => (
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/orders" element={<OrdersPage />} />
               <Route path="/orders/create" element={<CreateOrderPage />} />
+              <Route path="/orders/:id/edit" element={<UpdateOrderPage />} />
               <Route path="/orders/:id" element={<OrderDetailPage />} />
               <Route path="/profile" element={<CustomerProfilePage />} />
               <Route path="/addresses" element={<AddressesPage />} />

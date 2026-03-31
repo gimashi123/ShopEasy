@@ -47,7 +47,7 @@ function CheckoutForm({ order, orderId }: { order: Order; orderId: string }) {
     try {
       // Step 1: Create payment on backend (gets Stripe client secret)
       const payment: Payment = await paymentService.createPayment({
-        orderId: Number(orderId),
+        orderId,
         paymentMethod,
         customerId: user.id,
       });

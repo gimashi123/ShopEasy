@@ -52,7 +52,7 @@ export interface Order {
 
 export interface Payment {
   id: number;
-  orderId: number;
+  orderId: string | number;
   customerId: string;
   amount: number;
   paymentMethod: string;
@@ -63,7 +63,7 @@ export interface Payment {
 }
 
 export interface CreatePaymentRequest {
-  orderId: number;
+  orderId: string | number;
   paymentMethod: string;
   customerId: string;
 }
@@ -114,4 +114,3 @@ export interface DeliveryTask {
   createdAt: string;
   updatedAt: string;
 }
-
