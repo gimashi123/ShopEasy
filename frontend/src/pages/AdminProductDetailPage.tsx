@@ -34,7 +34,6 @@ export default function AdminProductDetailPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [imageFile, setImageFile] = useState<File | null>(null);
   const [form, setForm] = useState<ProductFormState>({
     sku: "",
     name: "",
@@ -96,7 +95,6 @@ export default function AdminProductDetailPage() {
           }))
         : [{ supermarketId: "", quantity: 0 }],
     });
-    setImageFile(null);
     setErrors({});
     setDialogOpen(true);
   };
@@ -137,12 +135,9 @@ export default function AdminProductDetailPage() {
 
     setSaving(true);
     try {
-      const updated = imageFile
-        ? await productService.updateWithImage(id, payload, imageFile)
-        : await productService.update(id, payload);
+      const updated = await productService.update(id, payload);
       setProduct(updated);
       setDialogOpen(false);
-      setImageFile(null);
       toast.success("Product updated successfully");
     } catch (error: any) {
       toast.error(error?.response?.data?.message || "Failed to update product");
@@ -187,6 +182,8 @@ export default function AdminProductDetailPage() {
     );
   }
 
+  const stockStatus = product.stockStatus || (product.available ? "IN_STOCK" : "OUT_OF_STOCK");
+
   return (
     <>
       <div className="space-y-6">
@@ -198,8 +195,20 @@ export default function AdminProductDetailPage() {
               </Link>
             </Button>
             <h1 className="text-2xl font-bold">{product.name}</h1>
-            <Badge variant={product.available ? "default" : "secondary"}>
-              {product.available ? "Available" : "Out of stock"}
+            <Badge
+              variant={
+                stockStatus === "LOW_STOCK"
+                  ? "pending"
+                  : stockStatus === "OUT_OF_STOCK"
+                    ? "secondary"
+                    : "default"
+              }
+            >
+              {stockStatus === "LOW_STOCK"
+                ? "Low stock"
+                : stockStatus === "OUT_OF_STOCK"
+                  ? "Out of stock"
+                  : "In stock"}
             </Badge>
           </div>
           <div className="flex gap-2">
@@ -275,9 +284,7 @@ export default function AdminProductDetailPage() {
         form={form}
         supermarkets={supermarkets}
         errors={errors}
-        imageFile={imageFile}
         onFormChange={setForm}
-        onImageFileChange={setImageFile}
         onSave={handleUpdate}
       />
 

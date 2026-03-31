@@ -48,7 +48,6 @@ export default function AdminProductsPage() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [form, setForm] = useState<ProductFormState>(EMPTY_FORM);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [imageFile, setImageFile] = useState<File | null>(null);
 
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -97,7 +96,6 @@ export default function AdminProductsPage() {
   const openCreate = () => {
     setEditingProduct(null);
     setForm(EMPTY_FORM);
-    setImageFile(null);
     setErrors({});
     setDialogOpen(true);
   };
@@ -119,7 +117,6 @@ export default function AdminProductsPage() {
           }))
         : [{ supermarketId: "", quantity: 0 }],
     });
-    setImageFile(null);
     setErrors({});
     setDialogOpen(true);
   };
@@ -161,22 +158,13 @@ export default function AdminProductsPage() {
     setSaving(true);
     try {
       if (editingProduct) {
-        if (imageFile) {
-          await productService.updateWithImage(editingProduct.id, payload, imageFile);
-        } else {
-          await productService.update(editingProduct.id, payload);
-        }
+        await productService.update(editingProduct.id, payload);
         toast.success("Product updated successfully");
       } else {
-        if (imageFile) {
-          await productService.createWithImage(payload, imageFile);
-        } else {
-          await productService.create(payload);
-        }
+        await productService.create(payload);
         toast.success("Product created successfully");
       }
       setDialogOpen(false);
-      setImageFile(null);
       await loadData();
     } catch (error: any) {
       toast.error(error?.response?.data?.message || "Failed to save product");
@@ -262,9 +250,7 @@ export default function AdminProductsPage() {
         form={form}
         supermarkets={supermarkets}
         errors={errors}
-        imageFile={imageFile}
         onFormChange={setForm}
-        onImageFileChange={setImageFile}
         onSave={handleSave}
       />
 

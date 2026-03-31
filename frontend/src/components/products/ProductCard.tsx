@@ -11,6 +11,10 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const imageSrc = resolveProductImageUrl(product.imageUrl);
+  const status = product.stockStatus || (product.available ? "IN_STOCK" : "OUT_OF_STOCK");
+  const statusLabel =
+    status === "LOW_STOCK" ? "Low Stock" : status === "OUT_OF_STOCK" ? "Out of stock" : "In Stock";
+  const badgeVariant = status === "OUT_OF_STOCK" ? "secondary" : status === "LOW_STOCK" ? "pending" : "default";
 
   return (
     <Link to={`/products/${product.id}`} className="block">
@@ -28,8 +32,8 @@ export function ProductCard({ product }: ProductCardProps) {
         <CardContent className="p-4 space-y-2">
           <div className="flex items-start justify-between gap-2">
             <h3 className="font-semibold leading-tight">{product.name}</h3>
-            <Badge variant={product.available ? "default" : "secondary"}>
-              {product.available ? "In Stock" : "Out"}
+            <Badge variant={badgeVariant}>
+              {statusLabel}
             </Badge>
           </div>
           <p className="text-xs text-muted-foreground font-mono">{product.sku}</p>
