@@ -17,10 +17,8 @@ interface ProductFormDialogProps {
   form: ProductFormState;
   supermarkets: Supermarket[];
   errors: Record<string, string>;
-  imageFile: File | null;
   onOpenChange: (open: boolean) => void;
   onFormChange: (next: ProductFormState) => void;
-  onImageFileChange: (file: File | null) => void;
   onSave: () => void;
 }
 
@@ -31,10 +29,8 @@ export function ProductFormDialog({
   form,
   supermarkets,
   errors,
-  imageFile,
   onOpenChange,
   onFormChange,
-  onImageFileChange,
   onSave,
 }: ProductFormDialogProps) {
   const setField = <K extends keyof ProductFormState>(key: K, value: ProductFormState[K]) => {
@@ -124,17 +120,6 @@ export function ProductFormDialog({
               onChange={(e) => setField("imageUrl", e.target.value)}
               placeholder="https://..."
             />
-          </div>
-          <div className="space-y-1.5 md:col-span-2">
-            <Label>Upload Image From Device</Label>
-            <Input
-              type="file"
-              accept="image/*"
-              onChange={(e) => onImageFileChange(e.target.files?.[0] || null)}
-            />
-            {imageFile && (
-              <p className="text-xs text-muted-foreground">Selected file: {imageFile.name}</p>
-            )}
           </div>
         </div>
 

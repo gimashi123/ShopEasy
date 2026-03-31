@@ -44,6 +44,8 @@ export interface Order {
   updatedAt?: string;
 }
 
+type BackendOrderStatus = "PENDING" | "CONFIRMED" | "PROCESSING" | "DISPATCHED" | "DELIVERED" | "CANCELLED";
+
 interface BackendOrder {
   id: string;
   customerId: string;
@@ -57,7 +59,7 @@ interface BackendOrder {
   discountAmount?: number | string;
   totalAmount?: number | string;
   deliveryCharge?: number | string;
-  status: "PENDING" | "CONFIRMED" | "PROCESSING" | "DISPATCHED" | "DELIVERED" | "CANCELLED";
+  status: BackendOrderStatus;
   createdAt: string;
   updatedAt?: string;
 }
@@ -72,14 +74,12 @@ const DEFAULT_PRICING_RULES: Record<string, number> = {
 
 const SLOT_STORAGE_KEY = "order_time_slots";
 
-const isObjectId = (value?: string) => Boolean(value && /^[a-fA-F0-9]{24}$/.test(value));
-
 const toNumber = (value: unknown): number => {
   const n = Number(value);
   return Number.isFinite(n) ? n : 0;
 };
 
-const mapBackendStatusToFrontend = (status: BackendOrder["status"]): OrderStatus => {
+const mapBackendStatusToFrontend = (status: BackendOrderStatus): OrderStatus => {
   switch (status) {
     case "CONFIRMED":
       return "PICKED_UP";
@@ -92,7 +92,7 @@ const mapBackendStatusToFrontend = (status: BackendOrder["status"]): OrderStatus
   }
 };
 
-const mapFrontendStatusToBackend = (status: OrderStatus): BackendOrder["status"] => {
+const mapFrontendStatusToBackend = (status: OrderStatus): BackendOrderStatus => {
   switch (status) {
     case "PICKED_UP":
       return "CONFIRMED";
@@ -163,6 +163,15 @@ const mapBackendOrderToFrontend = (order: BackendOrder): Order => {
   };
 };
 
+const toBackendItems = (items: OrderItem[], fallbackProductId?: string) =>
+  items.map((item) => {
+    return {
+      productId: item.productId || item.id || fallbackProductId || "",
+      quantity: Math.max(1, Math.floor(toNumber(item.quantity))),
+      unitPrice: Number(toNumber(item.unitPrice).toFixed(2)),
+    };
+  });
+
 class OrderService {
   async calculatePrice(
     serviceType: "STANDARD" | "PREMIUM",
@@ -200,16 +209,11 @@ class OrderService {
       address?: string;
       productId?: string;
       supermarketId?: string;
+      deliveryCharge?: number;
     }
   ): Promise<Order> {
     const productId = options.productId || import.meta.env.VITE_DEFAULT_PRODUCT_ID;
     const supermarketId = options.supermarketId || import.meta.env.VITE_DEFAULT_SUPERMARKET_ID;
-
-    if (!isObjectId(customerId) || !isObjectId(supermarketId)) {
-      throw new Error(
-        "Invalid IDs. Ensure customerId/supermarketId are valid 24-char ObjectIds (set VITE_DEFAULT_SUPERMARKET_ID)."
-      );
-    }
 
     const quantityForStandard = Math.max(1, Math.floor(options.weight || 1));
     const totalPrice = Number(options.totalPrice || 0);
@@ -219,30 +223,25 @@ class OrderService {
       serviceType === "STANDARD"
         ? [
             {
-              productId,
+              productId: productId || "",
               quantity: quantityForStandard,
               unitPrice: unitPriceForStandard,
             },
           ]
         : (options.items || []).map((item) => ({
-            productId: isObjectId(item.productId || item.id) ? (item.productId || item.id)! : productId,
+            productId: item.productId || item.id || productId || "",
             quantity: Math.max(1, Math.floor(item.quantity || 0)),
             unitPrice: Number(item.unitPrice || 0),
           }));
-
-    if (!isObjectId(productId) || itemsPayload.some((item) => !isObjectId(item.productId))) {
-      throw new Error(
-        "Invalid product IDs. Provide item productId/id as 24-char ObjectIds or set VITE_DEFAULT_PRODUCT_ID."
-      );
-    }
 
     const payload = {
       customerId,
       address: options.address,
       supermarketId,
       items: itemsPayload,
+      status: "PENDING" as BackendOrderStatus,
       discountAmount: 0,
-      deliveryCharge: 0,
+      deliveryCharge: Number(options.deliveryCharge || 0),
     };
 
     // OLD FRONTEND PAYLOAD (kept for reference, not removed):
@@ -339,6 +338,64 @@ class OrderService {
     // const res = await api.patch(`/orders/${orderId}/status`, { status });
 
     return mapBackendOrderToFrontend(unwrap(res));
+  }
+
+  async updateOrder(
+    orderId: string | number,
+    updates: {
+      address?: string;
+      supermarketId?: string;
+      items?: OrderItem[];
+      status?: OrderStatus;
+      discountAmount?: number;
+      deliveryCharge?: number;
+    }
+  ): Promise<Order> {
+    const existing = await this.getOrderById(orderId);
+    if (!existing) {
+      throw new Error("Order not found");
+    }
+
+    const supermarketId = updates.supermarketId || existing.supermarketId || import.meta.env.VITE_DEFAULT_SUPERMARKET_ID;
+    const defaultProductId = import.meta.env.VITE_DEFAULT_PRODUCT_ID;
+    const items = updates.items || existing.items;
+
+    if (!items || items.length === 0) {
+      throw new Error("Order must include at least one item.");
+    }
+
+    const payload = {
+      customerId: existing.customerId,
+      address: updates.address ?? existing.address,
+      supermarketId,
+      items: toBackendItems(items, defaultProductId),
+      status: mapFrontendStatusToBackend(updates.status || existing.status),
+      discountAmount: Number((updates.discountAmount ?? existing.discountAmount ?? 0).toFixed(2)),
+      deliveryCharge: Number((updates.deliveryCharge ?? existing.deliveryCharge ?? 0).toFixed(2)),
+    };
+
+    const res = await api.put(`/orders/${orderId}`, payload);
+    const updated = mapBackendOrderToFrontend(unwrap(res));
+
+    const current = readSlots();
+    if (current[updated.id]) {
+      writeSlots({
+        ...current,
+        [updated.id]: current[updated.id],
+      });
+    }
+
+    return updated;
+  }
+
+  async deleteOrder(orderId: string | number): Promise<void> {
+    await api.delete(`/orders/${orderId}`);
+
+    const current = readSlots();
+    if (current[String(orderId)]) {
+      delete current[String(orderId)];
+      writeSlots(current);
+    }
   }
 
   async cancelOrder(orderId: string | number): Promise<Order> {

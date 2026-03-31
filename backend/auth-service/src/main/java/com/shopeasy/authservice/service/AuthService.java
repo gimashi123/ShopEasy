@@ -37,11 +37,15 @@ public class AuthService {
             throw new ConflictException("User", "email", request.getEmail());
         }
 
+        String assignedRole = request.getRole() != null && !request.getRole().trim().isEmpty() 
+                                ? request.getRole() 
+                                : "ROLE_USER";
+                                
         User user = User.builder()
                 .username(request.getUsername())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .roles("ROLE_USER")
+                .roles(assignedRole)
                 .build();
 
         User saved = userRepository.save(user);

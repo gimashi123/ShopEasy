@@ -29,14 +29,29 @@ export function ProductsTable({ products, onView, onEdit, onDelete }: ProductsTa
         <TableBody>
           {products.map((product) => (
             <TableRow key={product.id} className="hover:bg-muted/40">
+              {/*
+                Admin status reflects backend-derived stock status so low stock is visible before full depletion.
+              */}
               <TableCell className="font-medium">{product.name}</TableCell>
               <TableCell className="font-mono text-xs">{product.sku}</TableCell>
               <TableCell>{product.category || "-"}</TableCell>
               <TableCell className="text-right">LKR {Number(product.price).toFixed(2)}</TableCell>
               <TableCell className="text-right">{product.totalQuantity ?? 0}</TableCell>
               <TableCell>
-                <Badge variant={product.available ? "default" : "secondary"}>
-                  {product.available ? "Available" : "Out of stock"}
+                <Badge
+                  variant={
+                    product.stockStatus === "LOW_STOCK"
+                      ? "pending"
+                      : product.stockStatus === "OUT_OF_STOCK"
+                        ? "secondary"
+                        : "default"
+                  }
+                >
+                  {product.stockStatus === "LOW_STOCK"
+                    ? "Low stock"
+                    : product.stockStatus === "OUT_OF_STOCK"
+                      ? "Out of stock"
+                      : "In stock"}
                 </Badge>
               </TableCell>
               <TableCell className="text-right">
