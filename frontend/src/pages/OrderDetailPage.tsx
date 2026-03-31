@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { orderService, Order } from "@/services/orderService";
-import { ORDER_STATUSES, CANCELLED_STATUS } from "@/types";
+import { CANCELLED_STATUS } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -22,6 +24,9 @@ export default function OrderDetailPage() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
+  const [address, setAddress] = useState("");
+  const [deliveryCharge, setDeliveryCharge] = useState("0");
+  const [discountAmount, setDiscountAmount] = useState("0");
 
   useEffect(() => {
     if (!id) return;
@@ -30,6 +35,13 @@ export default function OrderDetailPage() {
       .catch(() => toast.error("Failed to load order"))
       .finally(() => setLoading(false));
   }, [id]);
+
+  useEffect(() => {
+    if (!order) return;
+    setAddress(order.address || "");
+    setDeliveryCharge(String(order.deliveryCharge ?? 0));
+    setDiscountAmount(String(order.discountAmount ?? 0));
+  }, [order]);
 
   const advanceStatus = async () => {
     if (!order) return;
@@ -65,17 +77,35 @@ export default function OrderDetailPage() {
 
   const deleteOrder = async () => {
     if (!order) return;
+    if (!window.confirm("Delete this order permanently?")) return;
+
+    setUpdating(true);
     try {
-      // Mock deletion
-      const ordersStr = localStorage.getItem("mock_orders") || "[]";
-      let ordersList = JSON.parse(ordersStr);
-      ordersList = ordersList.filter((o: any) => o.id !== order.id);
-      localStorage.setItem("mock_orders", JSON.stringify(ordersList));
-      
+      await orderService.deleteOrder(order.id);
       toast.success("Order deleted");
       navigate("/orders");
     } catch { 
       toast.error("Failed to delete order"); 
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const saveOrderDetails = async () => {
+    if (!order) return;
+    setUpdating(true);
+    try {
+      const updated = await orderService.updateOrder(order.id, {
+        address,
+        deliveryCharge: Number(deliveryCharge) || 0,
+        discountAmount: Number(discountAmount) || 0,
+      });
+      setOrder(updated);
+      toast.success("Order details updated");
+    } catch {
+      toast.error("Failed to update order details");
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -247,6 +277,51 @@ export default function OrderDetailPage() {
           
           <Card className="border-border">
             <CardContent className="p-6">
+              {!isCancelled && !isDelivered && (
+                <div className="space-y-4 mb-6">
+                  <h3 className="font-semibold">Edit Order Details</h3>
+                  <div className="space-y-2">
+                    <Label htmlFor="address">Delivery Address</Label>
+                    <Input
+                      id="address"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      placeholder="Enter address"
+                      disabled={updating}
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="deliveryCharge">Delivery Charge</Label>
+                      <Input
+                        id="deliveryCharge"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={deliveryCharge}
+                        onChange={(e) => setDeliveryCharge(e.target.value)}
+                        disabled={updating}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="discountAmount">Discount Amount</Label>
+                      <Input
+                        id="discountAmount"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={discountAmount}
+                        onChange={(e) => setDiscountAmount(e.target.value)}
+                        disabled={updating}
+                      />
+                    </div>
+                  </div>
+                  <Button className="w-full" onClick={saveOrderDetails} disabled={updating}>
+                    Save Order Changes
+                  </Button>
+                </div>
+              )}
+
               {!isCancelled && order.status !== "PENDING" && (
                  <Button className="w-full text-base h-14 rounded-xl flex items-center justify-center gap-2" asChild>
                    <Link to={`/payments/create?orderId=${order.id}&amount=${order.totalPrice}`}>
@@ -260,6 +335,15 @@ export default function OrderDetailPage() {
                    <Trash2 className="h-5 w-5" /> Cancel Order
                  </Button>
               )}
+
+              <Button
+                variant="outline"
+                className="w-full text-base h-14 rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive flex items-center justify-center gap-2 mt-4 border-destructive/20"
+                onClick={deleteOrder}
+                disabled={updating}
+              >
+                <Trash2 className="h-5 w-5" /> Delete Order
+              </Button>
             </CardContent>
           </Card>
         </div>
