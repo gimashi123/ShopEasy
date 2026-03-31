@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { productService, type Product } from "@/services/productService";
 import { supermarketService, type Supermarket } from "@/services/supermarketService";
-import { orderService } from "@/services/orderService";
 import { resolveProductImageUrl } from "@/lib/productImage";
 import { ArrowLeft, Package } from "lucide-react";
 import { toast } from "sonner";
@@ -24,7 +23,6 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = useState(true);
   const [selectedSupermarketId, setSelectedSupermarketId] = useState("");
   const [orderQuantity, setOrderQuantity] = useState(1);
-  const [ordering, setOrdering] = useState(false);
 
   const loadProductData = () => {
     if (!id) return;
@@ -92,7 +90,7 @@ export default function ProductDetailPage() {
   const imageSrc = resolveProductImageUrl(product.imageUrl);
   const stockStatus = product.stockStatus || (product.available ? "IN_STOCK" : "OUT_OF_STOCK");
 
-  const placeOrder = async () => {
+  const placeOrder = () => {
     if (!user?.id) {
       toast.error("Please login to place an order");
       return;
@@ -110,16 +108,11 @@ export default function ProductDetailPage() {
       return;
     }
 
-    setOrdering(true);
-    try {
-      // Direct product checkout uses the real productId + supermarketId so stock reductions are accurate.
-      const createdOrder = await orderService.createOrder(user.id, "PREMIUM", {
+    navigate("/orders/create", {
+      state: {
+        source: "product-detail",
         supermarketId: selectedSupermarketId,
-        productId: product.id,
-        isExpress: false,
-        isDryClean: false,
-        totalPrice: Number(product.price) * orderQuantity,
-        items: [
+        prefilledItems: [
           {
             productId: product.id,
             name: product.name,
@@ -127,16 +120,8 @@ export default function ProductDetailPage() {
             unitPrice: Number(product.price),
           },
         ],
-      });
-
-      toast.success("Order placed successfully");
-      loadProductData();
-      navigate(`/orders/${createdOrder.id}`);
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Failed to place order");
-    } finally {
-      setOrdering(false);
-    }
+      },
+    });
   };
 
   return (
@@ -267,8 +252,8 @@ export default function ProductDetailPage() {
                   <p className="text-sm text-muted-foreground">
                     Total: LKR {(Number(product.price) * orderQuantity).toFixed(2)}
                   </p>
-                  <Button onClick={placeOrder} disabled={ordering || !selectedSupermarketId}>
-                    {ordering ? "Placing order..." : "Place Order"}
+                  <Button onClick={placeOrder} disabled={!selectedSupermarketId}>
+                    Place Order
                   </Button>
                 </div>
               </>

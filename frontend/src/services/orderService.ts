@@ -74,8 +74,6 @@ const DEFAULT_PRICING_RULES: Record<string, number> = {
 
 const SLOT_STORAGE_KEY = "order_time_slots";
 
-const isObjectId = (value?: string) => Boolean(value && /^[a-fA-F0-9]{24}$/.test(value));
-
 const toNumber = (value: unknown): number => {
   const n = Number(value);
   return Number.isFinite(n) ? n : 0;
@@ -167,15 +165,8 @@ const mapBackendOrderToFrontend = (order: BackendOrder): Order => {
 
 const toBackendItems = (items: OrderItem[], fallbackProductId?: string) =>
   items.map((item) => {
-    const preferredProductId = item.productId || item.id || fallbackProductId || "";
-    const productId = isObjectId(preferredProductId) ? preferredProductId : fallbackProductId || "";
-
-    if (!isObjectId(productId)) {
-      throw new Error("Invalid product IDs. Provide item productId/id as 24-char ObjectIds.");
-    }
-
     return {
-      productId,
+      productId: item.productId || item.id || fallbackProductId || "",
       quantity: Math.max(1, Math.floor(toNumber(item.quantity))),
       unitPrice: Number(toNumber(item.unitPrice).toFixed(2)),
     };
@@ -218,16 +209,11 @@ class OrderService {
       address?: string;
       productId?: string;
       supermarketId?: string;
+      deliveryCharge?: number;
     }
   ): Promise<Order> {
     const productId = options.productId || import.meta.env.VITE_DEFAULT_PRODUCT_ID;
     const supermarketId = options.supermarketId || import.meta.env.VITE_DEFAULT_SUPERMARKET_ID;
-
-    if (!isObjectId(customerId) || !isObjectId(supermarketId)) {
-      throw new Error(
-        "Invalid IDs. Ensure customerId/supermarketId are valid 24-char ObjectIds (set VITE_DEFAULT_SUPERMARKET_ID)."
-      );
-    }
 
     const quantityForStandard = Math.max(1, Math.floor(options.weight || 1));
     const totalPrice = Number(options.totalPrice || 0);
@@ -236,31 +222,26 @@ class OrderService {
     const itemsPayload =
       serviceType === "STANDARD"
         ? [
-          {
-            productId,
-            quantity: quantityForStandard,
-            unitPrice: unitPriceForStandard,
-          },
-        ]
+            {
+              productId: productId || "",
+              quantity: quantityForStandard,
+              unitPrice: unitPriceForStandard,
+            },
+          ]
         : (options.items || []).map((item) => ({
-          productId: isObjectId(item.productId || item.id) ? (item.productId || item.id)! : productId,
-          quantity: Math.max(1, Math.floor(item.quantity || 0)),
-          unitPrice: Number(item.unitPrice || 0),
-        }));
-
-    if (!isObjectId(productId) || itemsPayload.some((item) => !isObjectId(item.productId))) {
-      throw new Error(
-        "Invalid product IDs. Provide item productId/id as 24-char ObjectIds or set VITE_DEFAULT_PRODUCT_ID."
-      );
-    }
+            productId: item.productId || item.id || productId || "",
+            quantity: Math.max(1, Math.floor(item.quantity || 0)),
+            unitPrice: Number(item.unitPrice || 0),
+          }));
 
     const payload = {
       customerId,
       address: options.address,
       supermarketId,
       items: itemsPayload,
+      status: "PENDING" as BackendOrderStatus,
       discountAmount: 0,
-      deliveryCharge: 0,
+      deliveryCharge: Number(options.deliveryCharge || 0),
     };
 
     // OLD FRONTEND PAYLOAD (kept for reference, not removed):
@@ -379,9 +360,6 @@ class OrderService {
     const defaultProductId = import.meta.env.VITE_DEFAULT_PRODUCT_ID;
     const items = updates.items || existing.items;
 
-    if (!isObjectId(existing.customerId) || !isObjectId(supermarketId)) {
-      throw new Error("Invalid IDs. Ensure customerId/supermarketId are valid 24-char ObjectIds.");
-    }
     if (!items || items.length === 0) {
       throw new Error("Order must include at least one item.");
     }

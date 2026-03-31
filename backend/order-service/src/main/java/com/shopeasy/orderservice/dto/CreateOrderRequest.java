@@ -28,7 +28,6 @@ public class CreateOrderRequest {
     private String address;
 
     @NotBlank(message = "Supermarket ID is required")
-    @Pattern(regexp = OBJECT_ID_REGEX, message = "Supermarket ID must be a valid 24-character ObjectId")
     private String supermarketId;
 
     @NotEmpty(message = "Order must contain at least one item")
