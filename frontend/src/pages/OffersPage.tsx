@@ -25,9 +25,10 @@ export default function OffersPage() {
     fetchOffers();
   }, []);
 
-  // Group promotions by supermarketName
+  // Group promotions by supermarketName (normalized)
   const groupedPromotions = Array.isArray(promotions) ? promotions.reduce((acc, promo) => {
-    const supermarket = promo.supermarketName || "General Offers";
+    // Trim and normalize case to prevent "Shani" and "Shani " from being separate sections
+    const supermarket = (promo.supermarketName?.trim() || "General Offers").toUpperCase();
     if (!acc[supermarket]) {
       acc[supermarket] = [];
     }
@@ -87,7 +88,7 @@ export default function OffersPage() {
               <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tight">{supermarket}</h2>
             </div>
 
-            <motion.div 
+            <motion.div
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
               variants={containerVariants}
               initial="hidden"
@@ -97,8 +98,8 @@ export default function OffersPage() {
                 <motion.div key={promo.id} variants={itemVariants}>
                   <Card className="group relative overflow-hidden border-none shadow-md hover:shadow-xl transition-all duration-500 rounded-3xl bg-white h-full flex flex-col">
                     <div className="relative h-48 overflow-hidden">
-                      <img 
-                        src={promo.imageUrl || "https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&q=80"} 
+                      <img
+                        src={promo.imageUrl || "https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&q=80"}
                         alt={promo.productName || promo.name}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                       />

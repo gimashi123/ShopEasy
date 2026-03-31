@@ -218,17 +218,17 @@ class OrderService {
     const itemsPayload =
       serviceType === "STANDARD"
         ? [
-            {
-              productId,
-              quantity: quantityForStandard,
-              unitPrice: unitPriceForStandard,
-            },
-          ]
+          {
+            productId,
+            quantity: quantityForStandard,
+            unitPrice: unitPriceForStandard,
+          },
+        ]
         : (options.items || []).map((item) => ({
-            productId: isObjectId(item.productId || item.id) ? (item.productId || item.id)! : productId,
-            quantity: Math.max(1, Math.floor(item.quantity || 0)),
-            unitPrice: Number(item.unitPrice || 0),
-          }));
+          productId: isObjectId(item.productId || item.id) ? (item.productId || item.id)! : productId,
+          quantity: Math.max(1, Math.floor(item.quantity || 0)),
+          unitPrice: Number(item.unitPrice || 0),
+        }));
 
     if (!isObjectId(productId) || itemsPayload.some((item) => !isObjectId(item.productId))) {
       throw new Error(

@@ -179,7 +179,7 @@ spring:
         - id: promotion-service
           uri: ${PROMOTION_SERVICE_URL:http://localhost:8085}
           predicates:
-            - Path=/api/promotion/**
+            - Path=/api/promotions/**
           filters:
             - StripPrefix=0
 
