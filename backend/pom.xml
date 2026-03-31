@@ -24,6 +24,9 @@
         <module>order-service</module>
         <module>product-service</module>
         <module>gateway</module>
+        <module>delivery-service</module>
+
+        <module>notification-service</module>
         <module>supermarket-service</module>
         <module>promotion-service</module>
         <module>review-service</module>
@@ -38,6 +41,7 @@
         <protobuf.version>3.25.3</protobuf.version>
         <protobuf-plugin.version>0.6.1</protobuf-plugin.version>
         <grpc.spring.version>3.1.0.RELEASE</grpc.spring.version>
+        <springdoc.version>2.5.0</springdoc.version>
     </properties>
 
     <dependencyManagement>

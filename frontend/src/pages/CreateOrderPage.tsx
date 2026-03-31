@@ -114,7 +114,7 @@ export default function CreateOrderPage() {
 
       // 3. Redirect to payment page
       toast.success("Order created! Redirecting to checkout...");
-      navigate(`/payments/make?orderId=${order.id}`);
+      navigate(`/payments/create?orderId=${order.id}`);
     } catch (e: any) {
       toast.error("Error creating order");
     } finally {

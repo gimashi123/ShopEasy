@@ -15,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.util.List;
@@ -30,14 +29,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ProductService {
 
+    private static final int LOW_STOCK_THRESHOLD = 5;
+
     private final ProductRepository productRepository;
-    private final FileStorageService fileStorageService;
 
     public ProductResponse createProduct(ProductRequest request) {
-        return createProduct(request, null);
-    }
-
-    public ProductResponse createProduct(ProductRequest request, MultipartFile imageFile) {
         if (productRepository.existsBySku(request.getSku())) {
             throw new ConflictException("Product", "sku", request.getSku());
         }
@@ -50,7 +46,7 @@ public class ProductService {
                 .description(request.getDescription())
                 .category(request.getCategory())
                 .brand(request.getBrand())
-                .imageUrl(resolveImagePath(request.getImageUrl(), imageFile, null))
+                .imageUrl(normalizeImageUrl(request.getImageUrl()))
                 .price(request.getPrice())
                 .inventories(inventories)
                 .available(isAvailable(inventories))
@@ -129,10 +125,6 @@ public class ProductService {
     }
 
     public ProductResponse updateProduct(String id, ProductRequest request) {
-        return updateProduct(id, request, null);
-    }
-
-    public ProductResponse updateProduct(String id, ProductRequest request, MultipartFile imageFile) {
         Product existingProduct = findProductById(id);
 
         // Protect SKU uniqueness when a product is updated.
@@ -147,7 +139,7 @@ public class ProductService {
         existingProduct.setDescription(request.getDescription());
         existingProduct.setCategory(request.getCategory());
         existingProduct.setBrand(request.getBrand());
-        existingProduct.setImageUrl(resolveImagePath(request.getImageUrl(), imageFile, existingProduct.getImageUrl()));
+        existingProduct.setImageUrl(normalizeImageUrl(request.getImageUrl()));
         existingProduct.setPrice(request.getPrice());
         existingProduct.setInventories(inventories);
         existingProduct.setAvailable(isAvailable(inventories));
@@ -161,7 +153,6 @@ public class ProductService {
     public void deleteProduct(String id) {
         Product product = findProductById(id);
         productRepository.delete(product);
-        fileStorageService.deleteImage(product.getImageUrl());
         log.info("Deleted product: id={}, sku={}", product.getId(), product.getSku());
     }
 
@@ -171,6 +162,7 @@ public class ProductService {
     }
 
     private ProductResponse mapToResponse(Product product) {
+        int totalQuantity = calculateTotalQuantity(product.getInventories());
         return ProductResponse.builder()
                 .id(product.getId())
                 .sku(product.getSku())
@@ -181,8 +173,10 @@ public class ProductService {
                 .imageUrl(product.getImageUrl())
                 .price(product.getPrice())
                 .inventories(mapInventoryResponses(product.getInventories()))
-                .totalQuantity(calculateTotalQuantity(product.getInventories()))
+                .totalQuantity(totalQuantity)
                 .available(product.getAvailable())
+                .lowStock(isLowStock(totalQuantity))
+                .stockStatus(resolveStockStatus(totalQuantity))
                 .createdAt(product.getCreatedAt())
                 .updatedAt(product.getUpdatedAt())
                 .build();
@@ -224,23 +218,25 @@ public class ProductService {
                 .sum();
     }
 
-    private String resolveImagePath(String imageUrl, MultipartFile imageFile, String currentImageUrl) {
-        if (imageFile != null && !imageFile.isEmpty()) {
-            fileStorageService.deleteImage(currentImageUrl);
-            return fileStorageService.storeImage(imageFile);
-        }
+    private boolean isLowStock(int totalQuantity) {
+        return totalQuantity > 0 && totalQuantity <= LOW_STOCK_THRESHOLD;
+    }
 
+    private String resolveStockStatus(int totalQuantity) {
+        if (totalQuantity <= 0) {
+            return "OUT_OF_STOCK";
+        }
+        if (totalQuantity <= LOW_STOCK_THRESHOLD) {
+            return "LOW_STOCK";
+        }
+        return "IN_STOCK";
+    }
+
+    private String normalizeImageUrl(String imageUrl) {
         if (StringUtils.hasText(imageUrl)) {
-            String cleanedImageUrl = imageUrl.trim();
-
-            // If the admin switches from a local upload to a link, delete the old file.
-            if (!cleanedImageUrl.equals(currentImageUrl)) {
-                fileStorageService.deleteImage(currentImageUrl);
-            }
-
-            return cleanedImageUrl;
+            return imageUrl.trim();
         }
 
-        return currentImageUrl;
+        return null;
     }
 }

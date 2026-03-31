@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   Menu, X, LayoutDashboard, ShoppingBag,
   MapPin, User, LogOut, Settings, ChevronUp,
-  MessageSquare, Gift, ShoppingBasket, Store, Package, Megaphone,ChevronRight
+  MessageSquare, Gift, ShoppingBasket, Store, Package, Megaphone,ChevronRight,Truck
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -34,7 +34,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     { name: "Offers", href: "/offers", icon: MessageSquare },
     { name: "Preferences", href: "/preferences", icon: Settings },
     { name: "Supermarkets", href: "/supermarkets", icon: Store },
-    { name: "Products", href: "/products", icon: Package },
+    ...(!isAdmin ? [{ name: "Products", href: "/products", icon: Package }] : []),
     ...(isAdmin ? [{ name: "Manage Products", href: "/admin/products", icon: Package }] : []),
   ];
 
@@ -95,20 +95,69 @@ export function AppLayout({ children }: AppLayoutProps) {
           })}
 
           {isAdmin && (
-            <Link
-              to="/admin/settings"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className={`
-                flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors mt-4 border-t border-white/10 pt-4
-                ${location.pathname === "/admin/settings"
-                  ? "bg-white/20 text-white"
-                  : "text-yellow-400 hover:bg-white/10 hover:text-yellow-300"
-                }
-              `}
-            >
-              <Settings size={18} />
-              Admin Pricing
-            </Link>
+            <div className="mt-4 border-t border-white/10 pt-4 space-y-2">
+              <Link
+                to="/admin/settings"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`
+                  flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors
+                  ${location.pathname === "/admin/settings"
+                    ? "bg-white/20 text-white"
+                    : "text-yellow-400 hover:bg-white/10 hover:text-yellow-300"
+                  }
+                `}
+              >
+                <Settings size={18} />
+                Admin Pricing
+              </Link>
+              <Link
+                to="/admin/drivers"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`
+                  flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors
+                  ${location.pathname === "/admin/drivers"
+                    ? "bg-white/20 text-white"
+                    : "text-yellow-400 hover:bg-white/10 hover:text-yellow-300"
+                  }
+                `}
+              >
+                <User size={18} />
+                Manage Drivers
+              </Link>
+              <Link
+                to="/admin/tasks"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`
+                  flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors
+                  ${location.pathname === "/admin/tasks"
+                    ? "bg-white/20 text-white"
+                    : "text-yellow-400 hover:bg-white/10 hover:text-yellow-300"
+                  }
+                `}
+              >
+                <ShoppingBag size={18} />
+                Delivery Tasks
+              </Link>
+            </div>
+          )}
+
+          {user?.roles?.some(r => r.includes("ROLE_DRIVER") || r.includes("ROLE_ADMIN")) && (
+            <div className="mt-4 border-t border-white/10 pt-4">
+              <Link
+                to="/driver/dashboard"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`
+                  flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors
+                  ${location.pathname === "/driver/dashboard"
+                    ? "bg-white/20 text-white"
+                    : "text-green-400 hover:bg-white/10 hover:text-green-300"
+                  }
+                `}
+              >
+                <MapPin size={18} />
+                Driver Portal
+              </Link>
+            </div>
           )}
 
           {user?.roles?.includes("ROLE_ADMIN") && (

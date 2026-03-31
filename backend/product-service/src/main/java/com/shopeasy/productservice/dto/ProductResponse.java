@@ -29,6 +29,8 @@ public class ProductResponse {
     private List<ProductInventoryResponse> inventories;
     private Integer totalQuantity;
     private Boolean available;
+    private Boolean lowStock;
+    private String stockStatus;
     private Instant createdAt;
     private Instant updatedAt;
 }

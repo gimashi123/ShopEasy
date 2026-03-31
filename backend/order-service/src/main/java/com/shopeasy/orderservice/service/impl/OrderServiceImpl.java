@@ -2,8 +2,10 @@ package com.shopeasy.orderservice.service.impl;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Map;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import com.shopeasy.orderservice.client.AuthServiceClient;
 import com.shopeasy.orderservice.client.ProductServiceClient;
@@ -47,6 +49,7 @@ public class OrderServiceImpl implements OrderService {
         List<OrderItem> orderItems = toOrderItems(request.getItems());
 
         validateExternalReferences(request.getCustomerId(), orderItems, request.getSupermarketId());
+        reduceInventoryForOrderItems(orderItems, request.getSupermarketId());
         Instant now = Instant.now();
 
         Order order = Order.builder()
@@ -190,6 +193,21 @@ public class OrderServiceImpl implements OrderService {
         if (supermarketInfo == null || !supermarketInfo.active()) {
             throw new BusinessRuleException("Supermarket not found or inactive for id: " + supermarketId);
         }
+    }
+
+    /**
+     * Reduce stock in product-service immediately when an order is created.
+     * We aggregate quantities by product to avoid repeated downstream calls for duplicate product lines.
+     */
+    private void reduceInventoryForOrderItems(List<OrderItem> items, String supermarketId) {
+        Map<String, Integer> quantityByProductId = items.stream()
+                .collect(Collectors.groupingBy(
+                        OrderItem::getProductId,
+                        Collectors.summingInt(item -> requirePositiveQuantity(item.getQuantity()))
+                ));
+
+        quantityByProductId.forEach((productId, totalQuantity) ->
+                productServiceClient.reduceInventory(productId, supermarketId, totalQuantity));
     }
 
     private List<OrderItem> toOrderItems(List<OrderItemRequest> itemRequests) {

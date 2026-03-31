@@ -44,6 +44,8 @@ export interface Order {
   updatedAt?: string;
 }
 
+type BackendOrderStatus = "PENDING" | "CONFIRMED" | "PROCESSING" | "DISPATCHED" | "DELIVERED" | "CANCELLED";
+
 interface BackendOrder {
   id: string;
   customerId: string;
@@ -57,7 +59,7 @@ interface BackendOrder {
   discountAmount?: number | string;
   totalAmount?: number | string;
   deliveryCharge?: number | string;
-  status: "PENDING" | "CONFIRMED" | "PROCESSING" | "DISPATCHED" | "DELIVERED" | "CANCELLED";
+  status: BackendOrderStatus;
   createdAt: string;
   updatedAt?: string;
 }
@@ -79,7 +81,7 @@ const toNumber = (value: unknown): number => {
   return Number.isFinite(n) ? n : 0;
 };
 
-const mapBackendStatusToFrontend = (status: BackendOrder["status"]): OrderStatus => {
+const mapBackendStatusToFrontend = (status: BackendOrderStatus): OrderStatus => {
   switch (status) {
     case "CONFIRMED":
       return "PICKED_UP";
@@ -92,7 +94,7 @@ const mapBackendStatusToFrontend = (status: BackendOrder["status"]): OrderStatus
   }
 };
 
-const mapFrontendStatusToBackend = (status: OrderStatus): BackendOrder["status"] => {
+const mapFrontendStatusToBackend = (status: OrderStatus): BackendOrderStatus => {
   switch (status) {
     case "PICKED_UP":
       return "CONFIRMED";
@@ -162,6 +164,22 @@ const mapBackendOrderToFrontend = (order: BackendOrder): Order => {
     updatedAt: order.updatedAt,
   };
 };
+
+const toBackendItems = (items: OrderItem[], fallbackProductId?: string) =>
+  items.map((item) => {
+    const preferredProductId = item.productId || item.id || fallbackProductId || "";
+    const productId = isObjectId(preferredProductId) ? preferredProductId : fallbackProductId || "";
+
+    if (!isObjectId(productId)) {
+      throw new Error("Invalid product IDs. Provide item productId/id as 24-char ObjectIds.");
+    }
+
+    return {
+      productId,
+      quantity: Math.max(1, Math.floor(toNumber(item.quantity))),
+      unitPrice: Number(toNumber(item.unitPrice).toFixed(2)),
+    };
+  });
 
 class OrderService {
   async calculatePrice(
@@ -339,6 +357,67 @@ class OrderService {
     // const res = await api.patch(`/orders/${orderId}/status`, { status });
 
     return mapBackendOrderToFrontend(unwrap(res));
+  }
+
+  async updateOrder(
+    orderId: string | number,
+    updates: {
+      address?: string;
+      supermarketId?: string;
+      items?: OrderItem[];
+      status?: OrderStatus;
+      discountAmount?: number;
+      deliveryCharge?: number;
+    }
+  ): Promise<Order> {
+    const existing = await this.getOrderById(orderId);
+    if (!existing) {
+      throw new Error("Order not found");
+    }
+
+    const supermarketId = updates.supermarketId || existing.supermarketId || import.meta.env.VITE_DEFAULT_SUPERMARKET_ID;
+    const defaultProductId = import.meta.env.VITE_DEFAULT_PRODUCT_ID;
+    const items = updates.items || existing.items;
+
+    if (!isObjectId(existing.customerId) || !isObjectId(supermarketId)) {
+      throw new Error("Invalid IDs. Ensure customerId/supermarketId are valid 24-char ObjectIds.");
+    }
+    if (!items || items.length === 0) {
+      throw new Error("Order must include at least one item.");
+    }
+
+    const payload = {
+      customerId: existing.customerId,
+      address: updates.address ?? existing.address,
+      supermarketId,
+      items: toBackendItems(items, defaultProductId),
+      status: mapFrontendStatusToBackend(updates.status || existing.status),
+      discountAmount: Number((updates.discountAmount ?? existing.discountAmount ?? 0).toFixed(2)),
+      deliveryCharge: Number((updates.deliveryCharge ?? existing.deliveryCharge ?? 0).toFixed(2)),
+    };
+
+    const res = await api.put(`/orders/${orderId}`, payload);
+    const updated = mapBackendOrderToFrontend(unwrap(res));
+
+    const current = readSlots();
+    if (current[updated.id]) {
+      writeSlots({
+        ...current,
+        [updated.id]: current[updated.id],
+      });
+    }
+
+    return updated;
+  }
+
+  async deleteOrder(orderId: string | number): Promise<void> {
+    await api.delete(`/orders/${orderId}`);
+
+    const current = readSlots();
+    if (current[String(orderId)]) {
+      delete current[String(orderId)];
+      writeSlots(current);
+    }
   }
 
   async cancelOrder(orderId: string | number): Promise<Order> {

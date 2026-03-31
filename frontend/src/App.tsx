@@ -11,6 +11,7 @@ import DashboardPage from "@/pages/DashboardPage";
 import OrdersPage from "@/pages/OrdersPage";
 import OrderDetailPage from "@/pages/OrderDetailPage";
 import CreateOrderPage from "@/pages/CreateOrderPage";
+import UpdateOrderPage from "@/pages/UpdateOrderPage";
 import PaymentsPage from "@/pages/PaymentsPage";
 import MakePaymentPage from "@/pages/MakePaymentPage";
 import PaymentDetailPage from "@/pages/PaymentDetailPage";
@@ -29,6 +30,9 @@ import SupermarketsPage from "@/pages/SupermarketsPage";
 import SupermarketDetailPage from "@/pages/SupermarketDetailPage";
 import ProductsPage from "@/pages/ProductsPage";
 import ProductDetailPage from "@/pages/ProductDetailPage";
+import AdminDriversPage from "@/pages/AdminDriversPage";
+import AdminTasksPage from "@/pages/AdminTasksPage";
+import DriverDashboardPage from "@/pages/DriverDashboardPage";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +51,7 @@ const App = () => (
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/orders" element={<OrdersPage />} />
               <Route path="/orders/create" element={<CreateOrderPage />} />
+              <Route path="/orders/:id/edit" element={<UpdateOrderPage />} />
               <Route path="/orders/:id" element={<OrderDetailPage />} />
               <Route path="/profile" element={<CustomerProfilePage />} />
               <Route path="/addresses" element={<AddressesPage />} />
@@ -64,6 +69,11 @@ const App = () => (
               <Route path="/supermarkets/:id" element={<SupermarketDetailPage />} />
               <Route path="/products" element={<ProductsPage />} />
               <Route path="/products/:id" element={<ProductDetailPage />} />
+              <Route path="/admin/drivers" element={<AdminDriversPage />} />
+              <Route path="/admin/tasks" element={<AdminTasksPage />} />
+              <Route path="/supermarkets" element={<SupermarketsPage />} />
+              <Route path="/supermarkets/:id" element={<SupermarketDetailPage />} />
+              <Route path="/driver/dashboard" element={<DriverDashboardPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { orderService, Order } from "@/services/orderService";
-import { ORDER_STATUSES, CANCELLED_STATUS } from "@/types";
+import { paymentService } from "@/services/paymentService";
+import type { Payment } from "@/types";
+import { CANCELLED_STATUS } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,14 +22,24 @@ export default function OrderDetailPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [order, setOrder] = useState<Order | null>(null);
+  const [payment, setPayment] = useState<Payment | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
     if (!id) return;
-    orderService.getOrderById(id)
-      .then(setOrder)
-      .catch(() => toast.error("Failed to load order"))
+
+    Promise.allSettled([orderService.getOrderById(id), paymentService.getByOrder(id)])
+      .then(([orderResult, paymentResult]) => {
+        if (orderResult.status === "fulfilled") {
+          setOrder(orderResult.value);
+        } else {
+          toast.error("Failed to load order");
+        }
+        if (paymentResult.status === "fulfilled") {
+          setPayment(paymentResult.value);
+        }
+      })
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -51,6 +63,14 @@ export default function OrderDetailPage() {
 
   const cancelOrder = async () => {
     if (!order) return;
+    if (order.status !== "PENDING") {
+      toast.error("Only pending orders can be cancelled");
+      return;
+    }
+    if (payment?.status === "COMPLETED") {
+      toast.error("Paid orders cannot be cancelled by admin");
+      return;
+    }
     setUpdating(true);
     try {
       const updated = await orderService.cancelOrder(order.id);
@@ -65,17 +85,21 @@ export default function OrderDetailPage() {
 
   const deleteOrder = async () => {
     if (!order) return;
+    if (order.status !== "PENDING") {
+      toast.error("Only pending orders can be deleted");
+      return;
+    }
+    if (!window.confirm("Delete this order permanently?")) return;
+
+    setUpdating(true);
     try {
-      // Mock deletion
-      const ordersStr = localStorage.getItem("mock_orders") || "[]";
-      let ordersList = JSON.parse(ordersStr);
-      ordersList = ordersList.filter((o: any) => o.id !== order.id);
-      localStorage.setItem("mock_orders", JSON.stringify(ordersList));
-      
+      await orderService.deleteOrder(order.id);
       toast.success("Order deleted");
       navigate("/orders");
     } catch { 
       toast.error("Failed to delete order"); 
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -100,7 +124,12 @@ export default function OrderDetailPage() {
   const currentIdx = STATUS_PROGRESS.indexOf(order.status);
   const isCancelled = order.status === CANCELLED_STATUS;
   const isDelivered = order.status === "DELIVERED";
-  const isAdmin = user?.roles?.includes("ROLE_ADMIN");
+  const isPending = order.status === "PENDING";
+  const paymentCompleted = payment?.status === "COMPLETED";
+  const isAdmin = Boolean(user?.roles?.includes("ROLE_ADMIN"));
+  const isOwner = Boolean(user?.id && user.id === order.customerId);
+  const canManagePendingOrder = isPending && isOwner;
+  const canAdminCancelUnpaid = isAdmin && isPending && !paymentCompleted;
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
@@ -247,18 +276,57 @@ export default function OrderDetailPage() {
           
           <Card className="border-border">
             <CardContent className="p-6">
-              {!isCancelled && order.status !== "PENDING" && (
-                 <Button className="w-full text-base h-14 rounded-xl flex items-center justify-center gap-2" asChild>
-                   <Link to={`/payments/create?orderId=${order.id}&amount=${order.totalPrice}`}>
-                     <CreditCard className="h-5 w-5" /> Proceed to Payment
-                   </Link>
-                 </Button>
+              {isPending && (
+                <div className="rounded-md border bg-muted/30 p-4 mb-4 text-sm">
+                  <p className="font-medium">Pending order actions</p>
+                  <p className="text-muted-foreground mt-1">
+                    {paymentCompleted
+                      ? "Payment completed: only delivery address can be updated."
+                      : "Payment pending: items, quantities and delivery address can be updated."}
+                  </p>
+                </div>
               )}
-              
-              {!isCancelled && !isDelivered && (
-                 <Button variant="outline" className="w-full text-base h-14 rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive flex items-center justify-center gap-2 mt-4 border-destructive/20" onClick={cancelOrder} disabled={updating}>
-                   <Trash2 className="h-5 w-5" /> Cancel Order
-                 </Button>
+
+              {canManagePendingOrder && (
+                <div className="space-y-3">
+                  <Button className="w-full text-base h-12 rounded-xl" asChild>
+                    <Link to={`/orders/${order.id}/edit`}>Update Order</Link>
+                  </Button>
+
+                  {!paymentCompleted && (
+                    <Button variant="outline" className="w-full text-base h-12 rounded-xl flex items-center justify-center gap-2" asChild>
+                      <Link to={`/payments/create?orderId=${order.id}`}>
+                        <CreditCard className="h-5 w-5" /> Proceed to Payment
+                      </Link>
+                    </Button>
+                  )}
+
+                  <Button
+                    variant="outline"
+                    className="w-full text-base h-12 rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive flex items-center justify-center gap-2 border-destructive/20"
+                    onClick={deleteOrder}
+                    disabled={updating}
+                  >
+                    <Trash2 className="h-5 w-5" /> Delete Order
+                  </Button>
+                </div>
+              )}
+
+              {canAdminCancelUnpaid && (
+                <Button
+                  variant="outline"
+                  className="w-full text-base h-12 rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive flex items-center justify-center gap-2 mt-3 border-destructive/20"
+                  onClick={cancelOrder}
+                  disabled={updating}
+                >
+                  <Trash2 className="h-5 w-5" /> Admin Cancel Order
+                </Button>
+              )}
+
+              {!isPending && !isCancelled && (
+                <p className="text-sm text-muted-foreground">
+                  Update and delete actions are available only while the order is in pending state.
+                </p>
               )}
             </CardContent>
           </Card>
