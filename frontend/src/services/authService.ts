@@ -23,8 +23,8 @@ export const authService = {
     const res = await api.post<ApiResponse<LoginData>>("/auth/login", { username, password });
     return res.data;
   },
-  register: async (username: string, email: string, password: string) => {
-    const res = await api.post<ApiResponse<LoginData>>("/auth/register", { username, email, password });
+  register: async (username: string, email: string, password: string, role?: string) => {
+    const res = await api.post<ApiResponse<LoginData>>("/auth/register", { username, email, password, ...(role ? { role } : {}) });
     return res.data;
   },
   me: async () => {

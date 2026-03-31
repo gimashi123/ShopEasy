@@ -16,6 +16,9 @@ import MakePaymentPage from "@/pages/MakePaymentPage";
 import PaymentDetailPage from "@/pages/PaymentDetailPage";
 import CustomerProfilePage from "@/pages/CustomerProfilePage";
 import AdminSettingsPage from "@/pages/AdminSettingsPage";
+import AdminPromotionsPage from "@/pages/AdminPromotionsPage";
+import AdminProductsPage from "@/pages/AdminProductsPage";
+import AdminProductDetailPage from "@/pages/AdminProductDetailPage";
 import NotFound from "@/pages/NotFound";
 import AddressesPage from "@/pages/AddressesPage.tsx";
 import LoyaltyPage from "@/pages/LoyaltyPage.tsx";
@@ -24,6 +27,11 @@ import Index from "@/pages/Index";
 import OffersPage from "@/pages/OffersPage";
 import SupermarketsPage from "@/pages/SupermarketsPage";
 import SupermarketDetailPage from "@/pages/SupermarketDetailPage";
+import ProductsPage from "@/pages/ProductsPage";
+import ProductDetailPage from "@/pages/ProductDetailPage";
+import AdminDriversPage from "@/pages/AdminDriversPage";
+import AdminTasksPage from "@/pages/AdminTasksPage";
+import DriverDashboardPage from "@/pages/DriverDashboardPage";
 
 const queryClient = new QueryClient();
 
@@ -52,8 +60,18 @@ const App = () => (
               <Route path="/payments/create" element={<MakePaymentPage />} />
               <Route path="/payments/:id" element={<PaymentDetailPage />} />
               <Route path="/admin/settings" element={<AdminSettingsPage />} />
+              <Route path="/admin/promotions" element={<AdminPromotionsPage />} />
+              <Route path="/admin/products" element={<AdminProductsPage />} />
+              <Route path="/admin/products/:id" element={<AdminProductDetailPage />} />
               <Route path="/supermarkets" element={<SupermarketsPage />} />
               <Route path="/supermarkets/:id" element={<SupermarketDetailPage />} />
+              <Route path="/products" element={<ProductsPage />} />
+              <Route path="/products/:id" element={<ProductDetailPage />} />
+              <Route path="/admin/drivers" element={<AdminDriversPage />} />
+              <Route path="/admin/tasks" element={<AdminTasksPage />} />
+              <Route path="/supermarkets" element={<SupermarketsPage />} />
+              <Route path="/supermarkets/:id" element={<SupermarketDetailPage />} />
+              <Route path="/driver/dashboard" element={<DriverDashboardPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -34,6 +34,7 @@ public class SecurityConfig {
                                         "/api/auth/**",
                                         "/actuator/**",
                                         "/api/product/**",
+                                        "/uploads/**",
 
                                         // ✅ Swagger
                                         "/v3/api-docs/**",
