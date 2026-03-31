@@ -13,7 +13,7 @@ import { productService, type Product } from "@/services/productService";
 import { supermarketService, type Supermarket } from "@/services/supermarketService";
 import { reviewService, type Review } from "@/services/reviewService";
 import { resolveProductImageUrl } from "@/lib/productImage";
-import { ArrowLeft, Package, Star, Store, CheckCircle, ShieldCheck, ChevronRight, ShoppingCart, UserCircle2 } from "lucide-react";
+import { ArrowLeft, Package, Star, Store, CheckCircle, ShieldCheck, ChevronRight, ShoppingCart, Pencil, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -32,10 +32,16 @@ export default function ProductDetailPage() {
     const [selectedSupermarketId, setSelectedSupermarketId] = useState("");
     const [orderQuantity, setOrderQuantity] = useState(1);
 
-    // Review Form State
+    // Add Review State
     const [newReview, setNewReview] = useState({ rating: 5, comment: "" });
     const [submitting, setSubmitting] = useState(false);
     const [hoveredStar, setHoveredStar] = useState<number | null>(null);
+
+    // Edit Review State
+    const [editingReviewId, setEditingReviewId] = useState<string | null>(null);
+    const [editReviewData, setEditReviewData] = useState({ rating: 5, comment: "" });
+    const [editHoveredStar, setEditHoveredStar] = useState<number | null>(null);
+    const [updating, setUpdating] = useState(false);
 
     // --- DATA LOADING & POLLING ---
     const loadProductData = () => {
@@ -44,7 +50,7 @@ export default function ProductDetailPage() {
         Promise.allSettled([
             productService.getById(id),
             supermarketService.getAll(),
-            reviewService.getByProductId(id) // ✅ Added Reviews to the parallel fetch
+            reviewService.getByProductId(id)
         ])
             .then(([productResult, marketResult, reviewResult]) => {
                 if (productResult.status === "fulfilled") setProduct(productResult.value);
@@ -62,7 +68,6 @@ export default function ProductDetailPage() {
     }, [id]);
 
     useEffect(() => {
-        // Lightweight polling keeps customer stock numbers fresh
         const intervalId = window.setInterval(loadProductData, 15000);
         return () => window.clearInterval(intervalId);
     }, [id]);
@@ -89,22 +94,10 @@ export default function ProductDetailPage() {
     }, [availableInventories, selectedSupermarketId]);
 
     const placeOrder = () => {
-        if (!user?.id) {
-            toast.error("Please login to place an order");
-            return;
-        }
-        if (!selectedSupermarketId) {
-            toast.error("Please select a supermarket");
-            return;
-        }
-        if (orderQuantity < 1) {
-            toast.error("Quantity must be at least 1");
-            return;
-        }
-        if (orderQuantity > maxAvailableForSelection) {
-            toast.error(`Only ${maxAvailableForSelection} item(s) available in selected supermarket`);
-            return;
-        }
+        if (!user?.id) return toast.error("Please login to place an order");
+        if (!selectedSupermarketId) return toast.error("Please select a supermarket");
+        if (orderQuantity < 1) return toast.error("Quantity must be at least 1");
+        if (orderQuantity > maxAvailableForSelection) return toast.error(`Only ${maxAvailableForSelection} item(s) available.`);
 
         navigate("/orders/create", {
             state: {
@@ -129,11 +122,7 @@ export default function ProductDetailPage() {
 
         setSubmitting(true);
         try {
-            const savedReview = await reviewService.addReview({
-                ...newReview,
-                productId: id
-            });
-
+            const savedReview = await reviewService.addReview({ ...newReview, productId: id });
             setReviews([savedReview, ...reviews]);
             setNewReview({ rating: 5, comment: "" });
             toast.success("Review posted successfully!");
@@ -147,6 +136,43 @@ export default function ProductDetailPage() {
             setSubmitting(false);
         }
     };
+
+    // --- REVIEW EDIT/DELETE LOGIC ---
+    const startEditing = (review: Review) => {
+        setEditingReviewId(review.id);
+        setEditReviewData({ rating: review.rating, comment: review.comment });
+    };
+
+    const handleUpdateReview = async (e: React.FormEvent, reviewId: string) => {
+        e.preventDefault();
+        setUpdating(true);
+        try {
+            const updatedReview = await reviewService.updateReview(reviewId, {
+                ...editReviewData,
+                productId: id!
+            });
+            setReviews(reviews.map(r => r.id === reviewId ? updatedReview : r));
+            setEditingReviewId(null);
+            toast.success("Review updated successfully!");
+        } catch (error) {
+            toast.error("Failed to update review.");
+        } finally {
+            setUpdating(false);
+        }
+    };
+
+    const handleDeleteReview = async (reviewId: string) => {
+        if (!window.confirm("Are you sure you want to delete this review?")) return;
+
+        try {
+            await reviewService.deleteReview(reviewId);
+            setReviews(reviews.filter(r => r.id !== reviewId));
+            toast.success("Review deleted successfully!");
+        } catch (error) {
+            toast.error("Failed to delete review.");
+        }
+    };
+
 
     // --- UI RENDERERS ---
     if (loading && !product) {
@@ -168,9 +194,6 @@ export default function ProductDetailPage() {
                     <Package className="h-12 w-12 text-muted-foreground" />
                 </div>
                 <h2 className="text-2xl font-bold tracking-tight">Product not found</h2>
-                <p className="text-muted-foreground text-center max-w-md">
-                    The product you are looking for doesn't exist or has been removed from our catalog.
-                </p>
                 <Button asChild className="mt-4 rounded-full px-8">
                     <Link to="/products">Browse All Products</Link>
                 </Button>
@@ -187,15 +210,16 @@ export default function ProductDetailPage() {
 
     const ratingCounts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
     reviews.forEach(r => {
-        if (r.rating >= 1 && r.rating <= 5) {
-            ratingCounts[r.rating as keyof typeof ratingCounts]++;
-        }
+        if (r.rating >= 1 && r.rating <= 5) ratingCounts[r.rating as keyof typeof ratingCounts]++;
     });
+
+    // Current Logged-in Username (using username or id based on your token setup)
+    const currentUserId = user?.username || user?.id;
 
     return (
         <div className="space-y-10 max-w-7xl mx-auto pb-16 px-4 sm:px-6 lg:px-8 mt-6">
 
-            {/* Sleek Breadcrumb Navigation */}
+            {/* Breadcrumb Navigation */}
             <nav className="flex items-center text-sm font-medium text-muted-foreground mb-4">
                 <Link to="/products" className="hover:text-primary transition-colors flex items-center gap-1">
                     <ArrowLeft className="h-4 w-4 mr-1" /> Products
@@ -224,8 +248,6 @@ export default function ProductDetailPage() {
                                 <span className="font-medium">No image available</span>
                             </div>
                         )}
-
-                        {/* Dynamic Stock Badge Based on Main Branch Logic */}
                         <div className="absolute top-6 right-6">
                             <Badge
                                 className="px-4 py-1.5 rounded-full text-sm font-bold shadow-lg"
@@ -280,42 +302,6 @@ export default function ProductDetailPage() {
                             </p>
                         </div>
                     </div>
-
-                    {/* Supermarket Availability */}
-                    <Card className="shadow-none border-primary/20 bg-primary/5 overflow-hidden rounded-2xl mb-6">
-                        <CardHeader className="py-4 border-b border-primary/10 bg-primary/10">
-                            <CardTitle className="flex items-center gap-2 text-lg text-primary">
-                                <Store className="h-5 w-5" /> Supermarket Availability
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-0">
-                            {product.inventories?.length ? (
-                                <div className="divide-y divide-primary/10">
-                                    {product.inventories.map((inventory) => {
-                                        const market = supermarkets.find((item) => item.id === inventory.supermarketId);
-                                        return (
-                                            <div key={inventory.supermarketId} className="flex items-center justify-between p-4 hover:bg-primary/10 transition-colors">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="h-8 w-8 rounded-full bg-background border flex items-center justify-center shadow-sm">
-                                                        <Store className="h-4 w-4 text-primary" />
-                                                    </div>
-                                                    <span className="font-semibold text-foreground">{market?.name || inventory.supermarketId}</span>
-                                                </div>
-                                                <Badge variant="outline" className="bg-background font-bold px-3 py-1">
-                                                    {inventory.quantity} in stock
-                                                </Badge>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            ) : (
-                                <div className="p-6 text-center text-muted-foreground">
-                                    <Package className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                                    <p>Not currently available in any local supermarkets.</p>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
 
                     {/* Main Branch Order Placement Card */}
                     {!isAdmin && (
@@ -382,7 +368,6 @@ export default function ProductDetailPage() {
                             </CardContent>
                         </Card>
                     )}
-
                 </div>
             </div>
 
@@ -420,10 +405,7 @@ export default function ProductDetailPage() {
                                                 <span className="font-medium w-2 text-muted-foreground">{rating}</span>
                                                 <Star className="h-4 w-4 fill-muted-foreground text-muted-foreground shrink-0" />
                                                 <div className="flex-1 h-2.5 bg-background rounded-full overflow-hidden border">
-                                                    <div
-                                                        className="h-full bg-yellow-500 rounded-full transition-all duration-1000 ease-out"
-                                                        style={{ width: `${percentage}%` }}
-                                                    />
+                                                    <div className="h-full bg-yellow-500 rounded-full transition-all" style={{ width: `${percentage}%` }} />
                                                 </div>
                                                 <span className="w-8 text-right text-muted-foreground text-xs font-medium">{percentage}%</span>
                                             </div>
@@ -439,36 +421,96 @@ export default function ProductDetailPage() {
                             {reviews.length > 0 ? (
                                 <div className="space-y-5">
                                     {reviews.map((r) => {
-                                        const initial = r.userId ? r.userId.charAt(0).toUpperCase() : "V";
+                                        const isOwner = currentUserId === r.userId;
+                                        const isEditingThis = editingReviewId === r.id;
+
                                         return (
-                                            <Card key={r.id} className="shadow-sm border-border/50 rounded-2xl overflow-hidden hover:shadow-md transition-shadow">
+                                            <Card key={r.id} className={`shadow-sm border-border/50 rounded-2xl overflow-hidden transition-shadow ${isOwner ? 'border-primary/20 bg-primary/5' : 'hover:shadow-md'}`}>
                                                 <CardContent className="p-6">
+
+                                                    {/* Review Header */}
                                                     <div className="flex items-start justify-between mb-4">
                                                         <div className="flex items-center gap-3">
                                                             <div className="h-12 w-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-lg">
-                                                                {initial}
+                                                                {r.userId ? r.userId.charAt(0).toUpperCase() : "V"}
                                                             </div>
                                                             <div>
-                                                                <p className="font-bold text-foreground">{r.userId || "Verified Customer"}</p>
-                                                                <div className="flex items-center gap-2 mt-0.5">
-                                                                    <div className="flex text-yellow-500">
-                                                                        {[...Array(5)].map((_, i) => (
-                                                                            <Star key={i} size={14} fill={i < r.rating ? "currentColor" : "none"} className={i < r.rating ? "" : "text-muted-foreground/30"} />
-                                                                        ))}
+                                                                <p className="font-bold text-foreground">
+                                                                    {r.userId || "Verified Customer"}
+                                                                    {isOwner && <span className="ml-2 text-xs text-primary font-normal bg-primary/10 px-2 py-0.5 rounded-full">You</span>}
+                                                                </p>
+                                                                {!isEditingThis && (
+                                                                    <div className="flex items-center gap-2 mt-0.5">
+                                                                        <div className="flex text-yellow-500">
+                                                                            {[...Array(5)].map((_, i) => (
+                                                                                <Star key={i} size={14} fill={i < r.rating ? "currentColor" : "none"} className={i < r.rating ? "" : "text-muted-foreground/30"} />
+                                                                            ))}
+                                                                        </div>
+                                                                        <span className="text-xs font-medium text-green-600 bg-green-100 px-2 py-0.5 rounded-sm flex items-center gap-1">
+                                      <CheckCircle className="h-3 w-3" /> Verified
+                                    </span>
                                                                     </div>
-                                                                    <span className="text-xs font-medium text-green-600 bg-green-100 px-2 py-0.5 rounded-sm flex items-center gap-1">
-                                    <CheckCircle className="h-3 w-3" /> Verified
-                                  </span>
-                                                                </div>
+                                                                )}
                                                             </div>
                                                         </div>
-                                                        <span className="text-sm text-muted-foreground font-medium">
-                              {r.createdAt ? new Date(r.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Today'}
-                            </span>
+
+                                                        {/* Action Buttons (Edit/Delete) */}
+                                                        <div className="flex items-center gap-2">
+                                                            {!isEditingThis && (
+                                                                <span className="text-sm text-muted-foreground font-medium hidden sm:block">
+                                  {r.createdAt ? new Date(r.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Today'}
+                                </span>
+                                                            )}
+                                                            {isOwner && !isEditingThis && (
+                                                                <div className="flex gap-1 bg-background rounded-lg border shadow-sm p-0.5">
+                                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => startEditing(r)}>
+                                                                        <Pencil className="h-4 w-4" />
+                                                                    </Button>
+                                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => handleDeleteReview(r.id)}>
+                                                                        <Trash2 className="h-4 w-4" />
+                                                                    </Button>
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     </div>
-                                                    <p className="text-foreground/80 leading-relaxed sm:text-base text-sm ml-15">
-                                                        "{r.comment}"
-                                                    </p>
+
+                                                    {/* Review Body (Edit Form OR Text) */}
+                                                    {isEditingThis ? (
+                                                        <form onSubmit={(e) => handleUpdateReview(e, r.id)} className="space-y-4 mt-2 bg-background p-4 rounded-xl border shadow-inner">
+                                                            <div className="flex items-center justify-between border-b pb-3">
+                                                                <label className="text-sm font-bold text-muted-foreground uppercase">Update Rating</label>
+                                                                <div className="flex gap-1" onMouseLeave={() => setEditHoveredStar(null)}>
+                                                                    {[1, 2, 3, 4, 5].map((star) => (
+                                                                        <button
+                                                                            key={star}
+                                                                            type="button"
+                                                                            className="focus:outline-none hover:scale-110 transition-transform"
+                                                                            onMouseEnter={() => setEditHoveredStar(star)}
+                                                                            onClick={() => setEditReviewData({ ...editReviewData, rating: star })}
+                                                                        >
+                                                                            <Star
+                                                                                className={`h-6 w-6 transition-colors ${(editHoveredStar !== null ? star <= editHoveredStar : star <= editReviewData.rating) ? "fill-yellow-500 text-yellow-500" : "text-muted-foreground/20"}`}
+                                                                            />
+                                                                        </button>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                            <Textarea
+                                                                value={editReviewData.comment}
+                                                                onChange={(e) => setEditReviewData({...editReviewData, comment: e.target.value})}
+                                                                required
+                                                                className="min-h-[100px] resize-none"
+                                                            />
+                                                            <div className="flex gap-2 justify-end">
+                                                                <Button type="button" variant="outline" onClick={() => setEditingReviewId(null)}>Cancel</Button>
+                                                                <Button type="submit" disabled={updating}>{updating ? "Saving..." : "Save Changes"}</Button>
+                                                            </div>
+                                                        </form>
+                                                    ) : (
+                                                        <p className="text-foreground/80 leading-relaxed sm:text-base text-sm ml-15">
+                                                            "{r.comment}"
+                                                        </p>
+                                                    )}
                                                 </CardContent>
                                             </Card>
                                         );
