@@ -140,12 +140,26 @@ spring:
           predicates:
             - Path=/api/auth/**
 
+        - id: auth-docs
+          uri: ${AUTH_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/v3/api-docs/auth
+          filters:
+            - RewritePath=/v3/api-docs/auth, /v3/api-docs
+
         - id: delivery-service
           uri: ${DELIVERY_SERVICE_URL:http://localhost:8082}
           predicates:
             - Path=/api/delivery/**
           filters:
             - StripPrefix=0
+
+        - id: delivery-docs
+          uri: ${DELIVERY_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/v3/api-docs/delivery
+          filters:
+            - RewritePath=/v3/api-docs/delivery, /v3/api-docs
 
         - id: order-service
           uri: ${ORDER_SERVICE_URL:http://localhost:8083}
@@ -154,6 +168,13 @@ spring:
           filters:
             - AddRequestHeader=X-Gateway-Key, ${GATEWAY_SHARED_KEY:change-me-order-key}
 
+        - id: order-docs
+          uri: ${ORDER_SERVICE_URL:http://localhost:8083}
+          predicates:
+            - Path=/v3/api-docs/order
+          filters:
+            - RewritePath=/v3/api-docs/order, /v3/api-docs
+
         - id: product-service
           uri: ${PRODUCT_SERVICE_URL:http://localhost:8084}
           predicates:
@@ -161,6 +182,12 @@ spring:
           filters:
             - StripPrefix=0
 
+        - id: product-docs
+          uri: ${PRODUCT_SERVICE_URL:http://localhost:8084}
+          predicates:
+            - Path=/v3/api-docs/product
+          filters:
+            - RewritePath=/v3/api-docs/product, /v3/api-docs
 
         - id: supermarket-service
           uri: ${SUPERMARKET_SERVICE_URL:http://localhost:8089}
@@ -169,12 +196,26 @@ spring:
           filters:
             - StripPrefix=0
 
-#        - id: payment-service
-#          uri: ${PAYMENT_SERVICE_URL:http://localhost:8087}
-#          predicates:
-#            - Path=/api/payments/**
-#          filters:
-#            - StripPrefix=0
+        - id: supermarket-docs
+          uri: ${SUPERMARKET_SERVICE_URL:http://localhost:8089}
+          predicates:
+            - Path=/v3/api-docs/supermarket
+          filters:
+            - RewritePath=/v3/api-docs/supermarket, /v3/api-docs
+
+        # - id: payment-service
+        #   uri: ${PAYMENT_SERVICE_URL:http://localhost:8087}
+        #   predicates:
+        #     - Path=/api/payments/**
+        #   filters:
+        #     - StripPrefix=0
+
+        # - id: payment-docs
+        #   uri: ${PAYMENT_SERVICE_URL:http://localhost:8087}
+        #   predicates:
+        #     - Path=/v3/api-docs/payment
+        #   filters:
+        #     - RewritePath=/v3/api-docs/payment, /v3/api-docs
 
         - id: promotion-service
           uri: ${PROMOTION_SERVICE_URL:http://localhost:8085}
@@ -182,6 +223,13 @@ spring:
             - Path=/api/promotions/**
           filters:
             - StripPrefix=0
+
+        - id: promotion-docs
+          uri: ${PROMOTION_SERVICE_URL:http://localhost:8085}
+          predicates:
+            - Path=/v3/api-docs/promotion
+          filters:
+            - RewritePath=/v3/api-docs/promotion, /v3/api-docs
 
         - id: review-service
           uri: ${REVIEW_SERVICE_URL:http://localhost:8086}
@@ -196,6 +244,12 @@ spring:
 #            - Path=/api/supermarket/**
 #          filters:
 #            - StripPrefix=0
+        - id: review-docs
+          uri: ${REVIEW_SERVICE_URL:http://localhost:8086}
+          predicates:
+            - Path=/v3/api-docs/review
+          filters:
+            - RewritePath=/v3/api-docs/review, /v3/api-docs
 
 management:
   endpoints:
@@ -215,16 +269,18 @@ springdoc:
   swagger-ui:
     urls:
       - name: Auth Service
-        url: http://localhost:8081/v3/api-docs
+        url: /v3/api-docs/auth
       - name: Delivery Service
-        url: http://localhost:8082/v3/api-docs
+        url: /v3/api-docs/delivery
       - name: Order Service
-        url: http://localhost:8083/v3/api-docs
+        url: /v3/api-docs/order
       - name: Product Service
-        url: http://localhost:8084/v3/api-docs
+        url: /v3/api-docs/product
       - name: Promotion Service
-        url: http://localhost:8085/v3/api-docs
+        url: /v3/api-docs/promotion
       - name: Review Service
-        url: http://localhost:8086/v3/api-docs
+        url: /v3/api-docs/review
       - name: Supermarket Service
-        url: http://localhost:8089/v3/api-docs
+        url: /v3/api-docs/supermarket
+      - name: Payment Service
+        url: /v3/api-docs/payment
