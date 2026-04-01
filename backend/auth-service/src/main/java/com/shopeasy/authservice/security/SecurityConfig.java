@@ -1,5 +1,4 @@
 package com.shopeasy.authservice.security;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,32 +32,32 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(AbstractHttpConfigurer::disable)
-            .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                // Public endpoints
-                .requestMatchers(
-                    "/api/auth/register",
-                    "/api/auth/login",
-                    "/actuator/**",
-                    "/api/auth/me",
-                    "/h2-console/**",
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                                // Public endpoints
+                                .requestMatchers(
+                                        "/api/auth/register",
+                                        "/api/auth/login",
+                                        "/actuator/**",
+                                        "/api/auth/me",
+                                        "/h2-console/**",
 
-                    "/swagger-ui/**",
-                    "/v3/api-docs/**",
+                                        "/swagger-ui/**",
+                                        "/v3/api-docs/**",
 
 //                    "/v3/api-docs/**",
 //                    "/swagger-ui/**",
 
-                    "/swagger-ui.html"
-                ).permitAll()
-                // Everything else requires authentication
-                .anyRequest().authenticated()
-            )
-            // Allow H2 console frames
-            .headers(h -> h.frameOptions(f -> f.sameOrigin()))
-            .authenticationProvider(authenticationProvider())
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                                        "/swagger-ui.html"
+                                ).permitAll()
+                                // Everything else requires authentication
+                                .anyRequest().authenticated()
+                )
+                // Allow H2 console frames
+                .headers(h -> h.frameOptions(f -> f.sameOrigin()))
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
