@@ -14,6 +14,8 @@ public class UpdatePromotionRequest {
     @DecimalMax(value = "100.0", message = "Discount must be <= 100")
     private Double discountPercent;
 
+    private Double originalPrice;
+
     /**
      * If provided, updates the promotion's active flag.
      */

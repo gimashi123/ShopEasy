@@ -2,16 +2,17 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { Product } from "@/services/productService";
-import { Eye, Pencil, Trash2 } from "lucide-react";
+import { Eye, Pencil, Trash2, Percent } from "lucide-react";
 
 interface ProductsTableProps {
   products: Product[];
   onView: (product: Product) => void;
   onEdit: (product: Product) => void;
   onDelete: (product: Product) => void;
+  onPromote?: (product: Product) => void;
 }
 
-export function ProductsTable({ products, onView, onEdit, onDelete }: ProductsTableProps) {
+export function ProductsTable({ products, onView, onEdit, onDelete, onPromote }: ProductsTableProps) {
   return (
     <div className="overflow-x-auto">
       <Table>
@@ -56,13 +57,24 @@ export function ProductsTable({ products, onView, onEdit, onDelete }: ProductsTa
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end gap-2">
-                  <Button variant="outline" size="sm" onClick={() => onView(product)}>
+                  <Button variant="outline" size="sm" onClick={() => onView(product)} title="View Details">
                     <Eye className="h-3.5 w-3.5" />
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => onEdit(product)}>
+                  {onPromote && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => onPromote(product)}
+                      className="text-primary hover:text-primary-foreground hover:bg-primary border-primary/20"
+                      title="Add Promotion"
+                    >
+                      <Percent className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                  <Button variant="outline" size="sm" onClick={() => onEdit(product)} title="Edit Product">
                     <Pencil className="h-3.5 w-3.5" />
                   </Button>
-                  <Button variant="destructive" size="sm" onClick={() => onDelete(product)}>
+                  <Button variant="destructive" size="sm" onClick={() => onDelete(product)} title="Delete Product">
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </div>

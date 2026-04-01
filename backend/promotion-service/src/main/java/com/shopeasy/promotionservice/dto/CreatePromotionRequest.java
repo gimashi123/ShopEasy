@@ -25,6 +25,8 @@ public class CreatePromotionRequest {
 
     private String imageUrl;
 
+    private Double originalPrice;
+
     @NotNull(message = "Discount percent is required")
     @DecimalMin(value = "0.0", message = "Discount must be >= 0")
     @DecimalMax(value = "100.0", message = "Discount must be <= 100")

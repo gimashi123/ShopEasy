@@ -35,6 +35,7 @@ public class PromotionService {
                 .productName(request.getProductName())
                 .supermarketName(request.getSupermarketName())
                 .imageUrl(request.getImageUrl())
+                .originalPrice(request.getOriginalPrice() != null ? request.getOriginalPrice() : 0.0)
                 .discountPercent(request.getDiscountPercent())
                 .active(request.isActive())
                 .startDate(request.getStartDate())
@@ -42,8 +43,8 @@ public class PromotionService {
                 .build();
 
         Promotion saved = promotionRepository.save(promotion);
-        log.info("Created promotion: id={}, name={}, productId={}, discount={}%",
-                saved.getId(), saved.getName(), saved.getProductId(), saved.getDiscountPercent());
+        log.info("Created promotion: id={}, name={}, productId={}, originalPrice={}, discount={}%",
+                saved.getId(), saved.getName(), saved.getProductId(), saved.getOriginalPrice(), saved.getDiscountPercent());
         return toResponse(saved);
     }
 
@@ -92,6 +93,9 @@ public class PromotionService {
         }
         if (request.getActive() != null) {
             promotion.setActive(request.getActive());
+        }
+        if (request.getOriginalPrice() != null) {
+            promotion.setOriginalPrice(request.getOriginalPrice());
         }
         if (request.getName() != null) {
             promotion.setName(request.getName());
@@ -199,6 +203,7 @@ public class PromotionService {
                 .productName(p.getProductName())
                 .supermarketName(p.getSupermarketName())
                 .imageUrl(p.getImageUrl())
+                .originalPrice(p.getOriginalPrice())
                 .discountPercent(p.getDiscountPercent())
                 .active(p.isActive())
                 .startDate(p.getStartDate())
