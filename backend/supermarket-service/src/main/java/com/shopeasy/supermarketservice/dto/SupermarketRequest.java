@@ -29,6 +29,8 @@ public class SupermarketRequest {
 
     private String mapLink;
 
+    private String imageUrl;
+
     private LocationDto location;
 
     @Getter

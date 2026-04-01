@@ -56,6 +56,11 @@ export const productService = {
     return res.data.data;
   },
 
+  getBySupermarketId: async (supermarketId: string): Promise<Product[]> => {
+    const res = await api.get<ApiResponse<Product[]>>(`/product/supermarket/${supermarketId}`);
+    return res.data.data;
+  },
+
   delete: async (id: string): Promise<void> => {
     await api.delete(`/product/${id}`);
   },

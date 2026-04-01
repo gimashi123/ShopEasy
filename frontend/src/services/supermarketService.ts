@@ -13,6 +13,7 @@ export interface Supermarket {
   email: string;
   openingHours: string;
   mapLink?: string;
+  imageUrl?: string;
   location?: SupermarketLocation;
   active: boolean;
   createdAt: string;
@@ -26,6 +27,7 @@ export interface SupermarketRequest {
   email: string;
   openingHours: string;
   mapLink?: string;
+  imageUrl?: string;
   location?: SupermarketLocation;
 }
 

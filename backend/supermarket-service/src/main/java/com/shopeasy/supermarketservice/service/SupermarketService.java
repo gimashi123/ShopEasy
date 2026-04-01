@@ -27,6 +27,7 @@ public class SupermarketService {
                 .email(request.getEmail())
                 .openingHours(request.getOpeningHours())
                 .mapLink(request.getMapLink())
+                .imageUrl(request.getImageUrl())
                 .location(mapLocation(request.getLocation()))
                 .build();
 
@@ -53,6 +54,7 @@ public class SupermarketService {
         supermarket.setEmail(request.getEmail());
         supermarket.setOpeningHours(request.getOpeningHours());
         supermarket.setMapLink(request.getMapLink());
+        supermarket.setImageUrl(request.getImageUrl());
         supermarket.setLocation(mapLocation(request.getLocation()));
         supermarket.setUpdatedAt(Instant.now());
 

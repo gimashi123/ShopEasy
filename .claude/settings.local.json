@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd /d/SLIIT/Shop Easy/ShopEasy/frontend)",
+      "Bash(mvn compile:*)"
+    ]
+  }
+}

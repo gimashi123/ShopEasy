@@ -29,6 +29,8 @@ public class Supermarket {
 
     private String mapLink;
 
+    private String imageUrl;
+
     private Location location;
 
     @Builder.Default
