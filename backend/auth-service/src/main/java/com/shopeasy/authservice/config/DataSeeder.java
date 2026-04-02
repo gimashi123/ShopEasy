@@ -30,7 +30,7 @@ public class DataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        log.info("Checking for existing admin user...");
+        log.info("Checking for default admin user: {}", adminUsername);
         Optional<User> existingAdmin = userRepository.findByUsername(adminUsername);
         
         if (existingAdmin.isEmpty()) {
@@ -45,7 +45,29 @@ public class DataSeeder implements CommandLineRunner {
             userRepository.save(admin);
             log.info("Default admin user created successfully.");
         } else {
-            log.info("Admin user already exists. Skipping seeding.");
+            User admin = existingAdmin.get();
+            boolean updated = false;
+
+            // Sync password if it doesn't match
+            if (!passwordEncoder.matches(adminPassword, admin.getPassword())) {
+                log.info("Admin password out of sync. Updating password for: {}", adminUsername);
+                admin.setPassword(passwordEncoder.encode(adminPassword));
+                updated = true;
+            }
+
+            // Sync roles if ROLE_ADMIN is missing
+            if (!admin.getRoles().contains("ROLE_ADMIN")) {
+                log.info("Admin roles out of sync. Adding ROLE_ADMIN to: {}", adminUsername);
+                admin.setRoles("ROLE_USER,ROLE_ADMIN");
+                updated = true;
+            }
+
+            if (updated) {
+                userRepository.save(admin);
+                log.info("Admin user credentials updated successfully.");
+            } else {
+                log.info("Admin user already exists and is in sync. Skipping.");
+            }
         }
     }
 }

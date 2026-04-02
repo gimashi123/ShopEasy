@@ -8,6 +8,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.shopeasy.orderservice.client.AuthServiceClient;
+import com.shopeasy.orderservice.client.DeliveryServiceClient;
 import com.shopeasy.orderservice.client.ProductServiceClient;
 import com.shopeasy.orderservice.client.PromotionServiceClient;
 import com.shopeasy.orderservice.client.SupermarketServiceClient;
@@ -43,6 +44,7 @@ public class OrderServiceImpl implements OrderService {
     private final ProductServiceClient productServiceClient;
     private final PromotionServiceClient promotionServiceClient;
     private final SupermarketServiceClient supermarketServiceClient;
+    private final DeliveryServiceClient deliveryServiceClient;
 
     @Override
     public OrderResponse createOrder(CreateOrderRequest request) {
@@ -65,8 +67,17 @@ public class OrderServiceImpl implements OrderService {
                 .build();
 
         order.setTotalAmount(calculateTotalAmount(order));
+        Order savedOrder = orderRepository.save(order);
+        
+        // Trigger automatic delivery task creation
+        try {
+            deliveryServiceClient.createTask(savedOrder.getId(), savedOrder.getAddress());
+        } catch (Exception e) {
+            // We log but don't fail the order creation if only delivery notification fails
+            // Alternatively, you can decide to throw if this is mission-critical
+        }
 
-        return toOrderResponse(orderRepository.save(order));
+        return toOrderResponse(savedOrder);
     }
 
     @Override

@@ -15,6 +15,7 @@ export default function OffersPage() {
     const fetchOffers = async () => {
       try {
         const data = await promotionService.getActivePromotions();
+        console.log("Fetched active promotions:", data);
         setPromotions(data || []);
       } catch (error) {
         console.error("Failed to fetch offers:", error);
@@ -125,11 +126,23 @@ export default function OffersPage() {
                         </p>
                       </div>
                       <div className="flex items-center justify-between pt-4 border-t border-slate-50 mt-auto">
-                        <div className="flex items-center gap-2 text-emerald-600 font-bold">
-                          <Percent className="h-4 w-4" />
-                          <span>Guaranteed Savings</span>
+                        <div className="flex items-center gap-3">
+                          {promo.originalPrice && promo.originalPrice > 0 ? (
+                            <>
+                              <span className="text-xl font-black text-slate-800">
+                                LKR {(Number(promo.originalPrice) * (1 - promo.discountPercent / 100)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </span>
+                              <span className="text-lg text-slate-400 line-through font-medium">
+                                LKR {Number(promo.originalPrice).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-xl font-black text-emerald-600">
+                              Special Offer
+                            </span>
+                          )}
                         </div>
-                        <ShoppingBasket className="h-5 w-5 text-slate-300 group-hover:text-primary transition-colors" />
+                        <ShoppingBasket className="h-6 w-6 text-slate-300 group-hover:text-primary transition-colors flex-shrink-0" />
                       </div>
                     </CardContent>
                   </Card>

@@ -9,6 +9,7 @@ export interface Promotion {
   productName: string;
   supermarketName: string;
   imageUrl: string;
+  originalPrice: number;
   discountPercent: number;
   active: boolean;
   startDate?: string;

@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProductFormDialog, type ProductFormState } from "@/components/products/ProductFormDialog";
 import { ProductsTable } from "@/components/products/ProductsTable";
+import { PromotionFormDialog } from "@/components/promotions/PromotionFormDialog";
 import { productService, type Product } from "@/services/productService";
 import { supermarketService, type Supermarket } from "@/services/supermarketService";
 import { Plus, Search, Store } from "lucide-react";
@@ -51,6 +52,9 @@ export default function AdminProductsPage() {
 
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  const [promotionDialogOpen, setPromotionDialogOpen] = useState(false);
+  const [promotingProduct, setPromotingProduct] = useState<Product | null>(null);
 
   const loadData = async () => {
     setLoading(true);
@@ -188,6 +192,11 @@ export default function AdminProductsPage() {
     }
   };
 
+  const handlePromote = (product: Product) => {
+    setPromotingProduct(product);
+    setPromotionDialogOpen(true);
+  };
+
   if (!isAdmin) {
     return <Navigate to="/dashboard" replace />;
   }
@@ -236,6 +245,7 @@ export default function AdminProductsPage() {
                 onView={(product) => navigate(`/admin/products/${product.id}`)}
                 onEdit={openEdit}
                 onDelete={(product) => setDeleteTarget(product)}
+                onPromote={handlePromote}
               />
             )}
           </CardContent>
@@ -274,6 +284,12 @@ export default function AdminProductsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <PromotionFormDialog
+        open={promotionDialogOpen}
+        onOpenChange={setPromotionDialogOpen}
+        product={promotingProduct}
+      />
     </>
   );
 }

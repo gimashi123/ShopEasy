@@ -23,17 +23,17 @@ springdoc:
 
 services:
   auth:
-    base-url: ${AUTH_SERVICE_BASE_URL:http://localhost:8084}
+    base-url: ${AUTH_SERVICE_BASE_URL:http://localhost:8081}
   product:
     base-url: ${PRODUCT_SERVICE_BASE_URL:http://localhost:8084}
   supermarket:
-    base-url: ${SUPERMARKET_SERVICE_BASE_URL:http://localhost:8085}
+    base-url: ${SUPERMARKET_SERVICE_BASE_URL:http://localhost:8089}
   promotion:
-    base-url: ${PROMOTION_SERVICE_BASE_URL:http://localhost:8086}
+    base-url: ${PROMOTION_SERVICE_BASE_URL:http://localhost:8085}
   delivery:
-    base-url: ${DELIVERY_SERVICE_BASE_URL:http://localhost:8087}
+    base-url: ${DELIVERY_SERVICE_BASE_URL:http://localhost:8082}
   notification:
-    base-url: ${NOTIFICATION_SERVICE_BASE_URL:http://localhost:8088}
+    base-url: ${NOTIFICATION_SERVICE_BASE_URL:http://localhost:8086}
 
 security:
   gateway:

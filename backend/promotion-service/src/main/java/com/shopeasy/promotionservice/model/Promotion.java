@@ -39,6 +39,11 @@ public class Promotion {
     private String imageUrl;
 
     /**
+     * Original price of the product before discount.
+     */
+    private double originalPrice;
+
+    /**
      * Discount percentage (0.0 to 100.0).
      */
     @DecimalMin("0.0")
